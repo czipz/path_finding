@@ -28,14 +28,6 @@ void State::CheckForQuit()
 		m_Quit = true;
 }
 
-void State::RenderButtons()
-{
-	for (auto it = m_Buttons.begin(); it != m_Buttons.end(); ++it)
-	{
-		it->second->Render(m_Window);
-	}
-}
-
 void State::UpdateMousePositions()
 {
 	m_MousePosScreen = sf::Mouse::getPosition();

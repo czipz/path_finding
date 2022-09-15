@@ -4,7 +4,7 @@
 class AppState : public State
 {
 private:
-	void InitButtons();
+	void InitGui();
 	sf::RectangleShape m_Background;
 
 public:
@@ -13,7 +13,8 @@ public:
 
 	//Functions
 
-	void UpdateButtons();
+	void UpdateGui(const float&);
+	void RenderGui();
 
 	void UpdateInput(const float&);
 	void Update(const float&);
