@@ -33,7 +33,7 @@ App::~App()
 void App::UpdateElapsedTime()
 {
     m_ElapsedTime = m_ElapsedTimeClock.restart().asSeconds();
-    std::cout << "ElapsedTime: " << m_ElapsedTime << std::endl;
+    //std::cout << "ElapsedTime: " << m_ElapsedTime << std::endl;
 }
 
 void App::UpdateSFMLEvents()

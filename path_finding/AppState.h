@@ -4,8 +4,11 @@
 class AppState : public State
 {
 private:
-	void InitGui();
+	std::vector<gui::Grid*> m_Grid;
+	gui::GridStartNode* m_StartNode;
+	gui::GridEndNode* m_EndNode;
 	sf::RectangleShape m_Background;
+	void InitGui();
 
 public:
 	AppState(sf::RenderWindow*, std::stack<State*>*);

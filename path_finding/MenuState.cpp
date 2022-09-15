@@ -4,15 +4,16 @@ void MenuState::InitGui()
 {
 	m_Buttons["EXIT_STATE"] = new gui::Button(m_Window->getSize().x - 200,
 		m_Window->getSize().y - 75, 150, 50, "EXIT",
-		sf::Color(70, 70, 70, 200), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
+		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
 	m_Buttons["APP_STATE"] = new gui::Button(m_Window->getSize().x - 500,
 		m_Window->getSize().y / 2 - 25, 150, 50, "START",
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
 
-	std::vector<std::string> List = { "A*", "Dijkstra" };
-	m_DropDownLists["ALGORITHMS"] = new gui::DropDownList(m_Window->getSize().x - 900, m_Window->getSize().y / 2 - 25, 200, 50, List, List.size(), 0);
+	std::vector<std::string> List = { "A*", "Dijkstra's" };
+	m_DropDownLists["ALGORITHMS"] = new gui::DropDownList(m_Window->getSize().x - 900, 
+		m_Window->getSize().y / 2 - 25, 200, 50, List, List.size(), 0);
 }
 
 void MenuState::InitBackground()
@@ -20,12 +21,12 @@ void MenuState::InitBackground()
 	m_Background.setSize(sf::Vector2f(m_Window->getSize().x, m_Window->getSize().y));
 	m_BackgroundTexture.loadFromFile("Images/Backgrounds/bg.png");
 	m_Background.setTexture(&m_BackgroundTexture);
-	m_Font.loadFromFile("Fonts/font.ttf");
+	m_Font.loadFromFile("Fonts/font2_bold.ttf");
 	m_Text.setFont(m_Font);
 	m_Text.setString("Choose an algorithm:");
 	m_Text.setFillColor(sf::Color::White);
 	m_Text.setCharacterSize(19);
-	m_Text.setPosition(390, 308);
+	m_Text.setPosition(387, 308);
 }
 
 MenuState::MenuState(sf::RenderWindow* Window, std::stack<State*>* States)

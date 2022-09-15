@@ -8,7 +8,7 @@ gui::Button::Button(float x, float y, float width, float height, std::string Tex
 	m_Button.setPosition(sf::Vector2f(x, y));
 	m_Button.setSize(sf::Vector2f(width, height));
 
-	m_Font.loadFromFile("Fonts/font.ttf");
+	m_Font.loadFromFile("Fonts/font1.ttf");
 	m_Text.setFont(m_Font);
 	m_Text.setString(Text);
 	m_Text.setFillColor(sf::Color::White);
@@ -90,6 +90,7 @@ void gui::Button::Render(sf::RenderTarget* Target)
 }
 
 ////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 
 gui::DropDownList::DropDownList(float x, float y, float width, float height, std::vector<std::string> List, unsigned NrOfElements, unsigned default_index)
 	: m_ShowList(false), m_KeyTimeMax(1.f), m_KeyTime(0.f)
@@ -170,4 +171,175 @@ void gui::DropDownList::Render(sf::RenderTarget* Target)
 			i->Render(Target);
 		}
 	}
+}
+
+/////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+
+gui::Grid::Grid(const float& x, const float& y, const float& side,
+	sf::Color IdleColor, sf::Color ActiveColor, sf::Color OutlineColor)
+	: m_KeyTimeMax(4.f), m_KeyTime(0.f)
+{
+	m_GridState = GRID_STATES::GRID_IDLE;
+
+	m_Grid.setFillColor(IdleColor);
+	m_Grid.setOutlineColor(OutlineColor);
+	m_Grid.setOutlineThickness(2);
+	m_Grid.setPosition(sf::Vector2f(x, y));
+	m_Grid.setSize(sf::Vector2f(side, side));
+
+	m_IdleColor = IdleColor;
+	m_ActiveColor = ActiveColor;
+	m_OutlineColor = OutlineColor;
+}
+
+gui::Grid::~Grid()
+{
+	
+}
+
+bool gui::Grid::GetKeyTime()
+{
+	if (m_KeyTime >= m_KeyTimeMax)
+	{
+		m_KeyTime = 0.f;
+		return true;
+	}
+	else
+		return false;
+}
+
+void gui::Grid::UpdateKeyTime(const float& ElapsedTime)
+{
+	if (m_KeyTime < m_KeyTimeMax)
+		m_KeyTime += 10.f * ElapsedTime;
+}
+
+bool gui::Grid::IsPressed() const
+{
+	if (m_GridState == GRID_STATES::GRID_ACTIVE)
+		return true;
+
+	return false;
+}
+
+void gui::Grid::ChangeToIdleState()
+{
+	if (m_GridState == GRID_STATES::GRID_ACTIVE)
+		m_GridState = GRID_STATES::GRID_IDLE;
+}
+
+const sf::Vector2f& gui::Grid::GetPosition() const
+{
+	return m_Grid.getPosition();
+}
+
+void gui::Grid::Update(const sf::Vector2f& MousePos, const float& ElapsedTime)
+{
+	this->UpdateKeyTime(ElapsedTime);
+
+	if (m_Grid.getGlobalBounds().contains(MousePos) &&
+		sf::Mouse::isButtonPressed(sf::Mouse::Left) &&
+		m_GridState == GRID_STATES::GRID_IDLE &&
+		this->GetKeyTime())
+	{
+		m_GridState = GRID_STATES::GRID_ACTIVE;
+	}
+
+	//if (m_Grid.getGlobalBounds().contains(MousePos) &&
+	//	sf::Mouse::isButtonPressed(sf::Mouse::Left) &&
+	//	m_GridState == GRID_STATES::GRID_ACTIVE &&
+	//	this->GetKeyTime())
+	//{
+	//	m_GridState = GRID_STATES::GRID_IDLE;
+	//}
+
+
+	switch (m_GridState)
+	{
+	case GRID_STATES::GRID_IDLE:
+		m_Grid.setFillColor(m_IdleColor);
+		break;
+	case GRID_STATES::GRID_ACTIVE:
+		m_Grid.setFillColor(m_ActiveColor);
+		break;
+	default:
+		m_Grid.setFillColor(sf::Color::Red);
+		break;
+	}
+}
+
+void gui::Grid::Render(sf::RenderTarget* Target)
+{
+	Target->draw(m_Grid);
+}
+
+////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+
+gui::GridStartNode::GridStartNode(const float& x, const float& y, const float& size)
+{
+	m_StartTexture.loadFromFile("Images/Sprites/arrow.png");
+	m_StartSprite.setPosition(sf::Vector2f(x, y));
+	m_StartSprite.setSize(sf::Vector2f(size, size));
+	m_StartSprite.setTexture(&m_StartTexture);
+}
+
+gui::GridStartNode::~GridStartNode()
+{
+
+}
+
+const sf::Vector2f& gui::GridStartNode::GetPosition() const
+{
+	// TODO: insert return statement here
+}
+
+void gui::GridStartNode::SetPosition()
+{
+}
+
+void gui::GridStartNode::Update(const sf::Vector2f&, const float&)
+{
+
+}
+
+void gui::GridStartNode::Render(sf::RenderTarget* Target)
+{
+	Target->draw(m_StartSprite);
+}
+
+///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+
+gui::GridEndNode::GridEndNode(const float& x, const float& y, const float& size)
+{
+	m_EndTexture.loadFromFile("Images/Sprites/destination.png");
+	m_EndSprite.setPosition(sf::Vector2f(x, y));
+	m_EndSprite.setSize(sf::Vector2f(size, size));
+	m_EndSprite.setTexture(&m_EndTexture);
+}
+
+gui::GridEndNode::~GridEndNode()
+{
+
+}
+
+const sf::Vector2f& gui::GridEndNode::GetPosition() const
+{
+	// TODO: insert return statement here
+}
+
+void gui::GridEndNode::SetPosition()
+{
+}
+
+void gui::GridEndNode::Update(const sf::Vector2f&, const float&)
+{
+
+}
+
+void gui::GridEndNode::Render(sf::RenderTarget* Target)
+{
+	Target->draw(m_EndSprite);
 }

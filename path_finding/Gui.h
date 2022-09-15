@@ -17,6 +17,11 @@ enum class BUTTON_STATES
 	BTN_IDLE, BTN_HOVER, BTN_ACTIVE
 };
 
+enum class GRID_STATES
+{
+	GRID_IDLE, GRID_ACTIVE, GRID_START, GRID_END
+};
+
 namespace gui
 {
 	class Button
@@ -63,6 +68,73 @@ namespace gui
 
 		bool GetKeyTime();
 		void UpdateKeyTime(const float&);
+
+		void Update(const sf::Vector2f&, const float&);
+		void Render(sf::RenderTarget*);
+	};
+
+	class Grid
+	{
+	private:
+		GRID_STATES m_GridState;
+
+		sf::RectangleShape m_Grid;
+		sf::Color m_IdleColor;
+		sf::Color m_ActiveColor;
+		sf::Color m_OutlineColor;
+
+		float m_KeyTime;
+		float m_KeyTimeMax;
+
+	public:
+		Grid(const float&, const float&, const float&, sf::Color, sf::Color, sf::Color);
+		~Grid();
+
+		bool GetKeyTime();
+		void UpdateKeyTime(const float&);
+
+		bool IsPressed() const;
+
+		void ChangeToIdleState();
+
+		const sf::Vector2f& GetPosition() const;
+
+		void Update(const sf::Vector2f&, const float&);
+		void Render(sf::RenderTarget*);
+	};
+
+	class GridStartNode
+	{
+	private:
+		sf::RectangleShape m_StartSprite;
+		sf::Texture m_StartTexture;
+
+		sf::Sprite m_EndSprite;
+		sf::Texture m_EndTexture;
+
+	public:
+		GridStartNode(const float&, const float&, const float&);
+		~GridStartNode();
+
+		const sf::Vector2f& GetPosition() const;
+		void SetPosition();
+
+		void Update(const sf::Vector2f&, const float&);
+		void Render(sf::RenderTarget*);
+	};
+
+	class GridEndNode
+	{
+	private:
+		sf::RectangleShape m_EndSprite;
+		sf::Texture m_EndTexture;
+
+	public:
+		GridEndNode(const float&, const float&, const float&);
+		~GridEndNode();
+
+		const sf::Vector2f& GetPosition() const;
+		void SetPosition();
 
 		void Update(const sf::Vector2f&, const float&);
 		void Render(sf::RenderTarget*);
