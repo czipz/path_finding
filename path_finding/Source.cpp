@@ -1,9 +1,11 @@
 
-#include "SFML/Graphics.hpp"
-#include "SFML/Window.hpp"
-#include "SFML/System.hpp"
+#include "App.h"
 
 int main()
 {
+    
+	App app;
+	app.Run();
 
+	return 0;
 }
