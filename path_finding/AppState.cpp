@@ -7,35 +7,40 @@ void AppState::InitGui()
 		m_Window->getSize().y - 700, 150, 50, "Back",
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 	
-	m_Buttons["CLEAR_GRID"] = new gui::Button(m_Window->getSize().x - 400,
-		m_Window->getSize().y - 700, 150, 50, "Clear",
+	m_Buttons["RESTART_GRID"] = new gui::Button(m_Window->getSize().x - 400,
+		m_Window->getSize().y - 700, 150, 50, "Restart",
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
-	m_Buttons["RUN_ALGORITHM"] = new gui::Button(m_Window->getSize().x - 650,
-		m_Window->getSize().y - 700, 200, 50, "Run",
+	m_Buttons["RUN_ALGORITHM"] = new gui::Button(m_Window->getSize().x - 600,
+		m_Window->getSize().y - 700, 150, 50, "Run",
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
 	// Init Grid
-	unsigned short side = 20;
-	for (unsigned y = 5; y < (m_Window->getSize().y / side) - 1; ++y)
+	for (unsigned y = 5; y < (m_Window->getSize().y / m_Side) - 1; ++y)
 	{
-		for (unsigned x = 1; x < (m_Window->getSize().x / side) - 1; ++x)
-			m_Grid.push_back(new gui::Grid(side * x, side * y, side, 
+		for (unsigned x = 1; x < (m_Window->getSize().x / m_Side) - 1; ++x)
+			m_Grid.push_back(new gui::Grid(m_Side * x, m_Side * y, m_Side,
 				sf::Color(169, 169, 169), sf::Color::Black, sf::Color::White));
 	}
 
 	//Init Grid Nodes
-	m_StartNode = new gui::GridStartNode(m_Grid[1]->GetPosition().x, m_Grid[1]->GetPosition().y, side);
-	m_EndNode = new gui::GridEndNode(m_Grid[2]->GetPosition().x - 1, m_Grid[2]->GetPosition().y - 1, side);
+	m_StartNode = new gui::GridStartNode(m_Grid[883]->GetPosition().x, m_Grid[883]->GetPosition().y, m_Side);
+	m_EndNode = new gui::GridEndNode(m_Grid[914]->GetPosition().x, m_Grid[914]->GetPosition().y, m_Side);
+}
+
+void AppState::InitBackground()
+{
+	m_Background.setSize(sf::Vector2f(m_Window->getSize().x, m_Window->getSize().y));
+	m_BackgroundTexture.loadFromFile("Images/Backgrounds/bg2.png");
+	m_Background.setTexture(&m_BackgroundTexture);
 }
 
 AppState::AppState(sf::RenderWindow* Window, std::stack<State*>* States)
-	: State(Window, States)
+	: State(Window, States), m_Side(20)
 {
 	std::cout << "Created App State\n";
 	this->InitGui();
-	m_Background.setSize(sf::Vector2f(m_Window->getSize().x, m_Window->getSize().y));
-	m_Background.setFillColor(sf::Color(47, 79, 79));
+	this->InitBackground();
 }
 
 AppState::~AppState()
@@ -58,23 +63,31 @@ void AppState::UpdateGui(const float& ElapsedTime)
 		it->second->Update(m_MousePosView);
 	}
 
+	// Update Nodes
+	m_StartNode->Update(m_MousePosView, m_Side, m_Grid, ElapsedTime);
+	m_EndNode->Update(m_MousePosView, m_Side, m_Grid, ElapsedTime);
+
+	// Update Grid
 	for (const auto& e : m_Grid)
 	{
-		e->Update(m_MousePosView, ElapsedTime);
+		e->Update(m_MousePosView, ElapsedTime, m_StartNode, m_EndNode);
 	}
 
-	// exit 
+	// Exit Button
 	if (m_Buttons["EXIT_STATE"]->IsPressed())
 	{
 		m_Quit = true;
 	}
 
-	if (m_Buttons["CLEAR_GRID"]->IsPressed())
+	// Clear Button
+	if (m_Buttons["RESTART_GRID"]->IsPressed())
 	{
 		for (auto& e : m_Grid)
 		{
 			e->ChangeToIdleState();
 		}
+		m_StartNode->SetPosition(m_Grid[883]->GetPosition().x, m_Grid[883]->GetPosition().y);
+		m_EndNode->SetPosition(m_Grid[914]->GetPosition().x, m_Grid[914]->GetPosition().y);
 	}
 }
 

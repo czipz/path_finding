@@ -19,11 +19,20 @@ enum class BUTTON_STATES
 
 enum class GRID_STATES
 {
-	GRID_IDLE, GRID_ACTIVE, GRID_START, GRID_END
+	GRID_IDLE, GRID_ACTIVE
+};
+
+enum class GRID_NODES_STATES
+{
+	NODE_IDLE, NODE_ACTIVE
 };
 
 namespace gui
 {
+	class GridStartNode;
+
+	class GridEndNode;
+
 	class Button
 	{
 	private:
@@ -98,47 +107,71 @@ namespace gui
 		void ChangeToIdleState();
 
 		const sf::Vector2f& GetPosition() const;
+		bool IsActive() const;
+		bool Contains(const sf::Vector2f&) const;
+	
+		
 
-		void Update(const sf::Vector2f&, const float&);
+		void Update(const sf::Vector2f&, const float&,
+			GridStartNode*, GridEndNode*);
 		void Render(sf::RenderTarget*);
 	};
 
 	class GridStartNode
 	{
 	private:
-		sf::RectangleShape m_StartSprite;
+		sf::RectangleShape m_StartingPoint;
 		sf::Texture m_StartTexture;
 
-		sf::Sprite m_EndSprite;
-		sf::Texture m_EndTexture;
+		float m_KeyTime;
+		float m_KeyTimeMax;
+
+		bool m_NodeFlag;
 
 	public:
 		GridStartNode(const float&, const float&, const float&);
 		~GridStartNode();
 
-		const sf::Vector2f& GetPosition() const;
-		void SetPosition();
+		bool GetKeyTime();
+		void UpdateKeyTime(const float&);
 
-		void Update(const sf::Vector2f&, const float&);
+		const sf::Vector2f& GetPosition() const;
+		void SetPosition(const float&, const float&);
+
+		void UpdateNodePosition(const sf::Vector2f&, const std::vector<Grid*>&);
+
+		void Update(const sf::Vector2f&, const float&, const std::vector<Grid*>&, const float&);
 		void Render(sf::RenderTarget*);
 	};
 
 	class GridEndNode
 	{
 	private:
-		sf::RectangleShape m_EndSprite;
+		sf::RectangleShape m_DestinationPoint;
 		sf::Texture m_EndTexture;
+
+		float m_KeyTime;
+		float m_KeyTimeMax;
+
+		bool m_NodeFlag;
 
 	public:
 		GridEndNode(const float&, const float&, const float&);
 		~GridEndNode();
 
-		const sf::Vector2f& GetPosition() const;
-		void SetPosition();
+		bool GetKeyTime();
+		void UpdateKeyTime(const float&);
 
-		void Update(const sf::Vector2f&, const float&);
+		const sf::Vector2f& GetPosition() const;
+		void SetPosition(const float&, const float&);
+
+		void UpdateNodePosition(const sf::Vector2f&, const std::vector<Grid*>&);
+
+		void Update(const sf::Vector2f&, const float&, const std::vector<Grid*>&, const float&);
 		void Render(sf::RenderTarget*);
 	};
+
+
 }
 
 

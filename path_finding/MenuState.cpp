@@ -6,7 +6,7 @@ void MenuState::InitGui()
 		m_Window->getSize().y - 75, 150, 50, "EXIT",
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
-	m_Buttons["APP_STATE"] = new gui::Button(m_Window->getSize().x - 500,
+	m_Buttons["APP_STATE"] = new gui::Button(m_Window->getSize().x - 570,
 		m_Window->getSize().y / 2 - 25, 150, 50, "START",
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 

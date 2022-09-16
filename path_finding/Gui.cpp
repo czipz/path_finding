@@ -7,6 +7,8 @@ gui::Button::Button(float x, float y, float width, float height, std::string Tex
 
 	m_Button.setPosition(sf::Vector2f(x, y));
 	m_Button.setSize(sf::Vector2f(width, height));
+	m_Button.setOutlineColor(sf::Color::Black);
+	m_Button.setOutlineThickness(1);
 
 	m_Font.loadFromFile("Fonts/font1.ttf");
 	m_Text.setFont(m_Font);
@@ -184,7 +186,7 @@ gui::Grid::Grid(const float& x, const float& y, const float& side,
 
 	m_Grid.setFillColor(IdleColor);
 	m_Grid.setOutlineColor(OutlineColor);
-	m_Grid.setOutlineThickness(2);
+	m_Grid.setOutlineThickness(-1);
 	m_Grid.setPosition(sf::Vector2f(x, y));
 	m_Grid.setSize(sf::Vector2f(side, side));
 
@@ -213,6 +215,7 @@ void gui::Grid::UpdateKeyTime(const float& ElapsedTime)
 {
 	if (m_KeyTime < m_KeyTimeMax)
 		m_KeyTime += 10.f * ElapsedTime;
+	//std::cout << m_KeyTime << std::endl;
 }
 
 bool gui::Grid::IsPressed() const
@@ -234,16 +237,38 @@ const sf::Vector2f& gui::Grid::GetPosition() const
 	return m_Grid.getPosition();
 }
 
-void gui::Grid::Update(const sf::Vector2f& MousePos, const float& ElapsedTime)
+bool gui::Grid::IsActive() const
+{
+	if (m_GridState == GRID_STATES::GRID_ACTIVE)
+		return true;
+	
+	return false;
+}
+
+bool gui::Grid::Contains(const sf::Vector2f& MousePos) const
+{
+	return m_Grid.getGlobalBounds().contains(MousePos);
+}
+
+void gui::Grid::Update(const sf::Vector2f& MousePos, const float& ElapsedTime,
+	 GridStartNode* StartNode, GridEndNode* EndNode)
 {
 	this->UpdateKeyTime(ElapsedTime);
 
 	if (m_Grid.getGlobalBounds().contains(MousePos) &&
 		sf::Mouse::isButtonPressed(sf::Mouse::Left) &&
-		m_GridState == GRID_STATES::GRID_IDLE &&
-		this->GetKeyTime())
+		m_GridState == GRID_STATES::GRID_IDLE && this->GetKeyTime() && 
+		!(m_Grid.getGlobalBounds().contains(StartNode->GetPosition()) ||
+			m_Grid.getGlobalBounds().contains(EndNode->GetPosition())))
 	{
 		m_GridState = GRID_STATES::GRID_ACTIVE;
+	}
+
+	if (m_Grid.getGlobalBounds().contains(MousePos) &&
+		sf::Mouse::isButtonPressed(sf::Mouse::Right) &&
+		m_GridState == GRID_STATES::GRID_ACTIVE && this->GetKeyTime())
+	{
+		m_GridState = GRID_STATES::GRID_IDLE;
 	}
 
 	//if (m_Grid.getGlobalBounds().contains(MousePos) &&
@@ -253,7 +278,6 @@ void gui::Grid::Update(const sf::Vector2f& MousePos, const float& ElapsedTime)
 	//{
 	//	m_GridState = GRID_STATES::GRID_IDLE;
 	//}
-
 
 	switch (m_GridState)
 	{
@@ -278,11 +302,13 @@ void gui::Grid::Render(sf::RenderTarget* Target)
 ///////////////////////////////////////////////////////////////////
 
 gui::GridStartNode::GridStartNode(const float& x, const float& y, const float& size)
+	: m_KeyTimeMax(4.f), m_KeyTime(0.f), m_NodeFlag(false)
 {
 	m_StartTexture.loadFromFile("Images/Sprites/arrow.png");
-	m_StartSprite.setPosition(sf::Vector2f(x, y));
-	m_StartSprite.setSize(sf::Vector2f(size, size));
-	m_StartSprite.setTexture(&m_StartTexture);
+	m_StartingPoint.setPosition(sf::Vector2f(x, y));
+	m_StartingPoint.setTexture(&m_StartTexture);
+	m_StartingPoint.setSize(sf::Vector2f(size, size));
+	
 }
 
 gui::GridStartNode::~GridStartNode()
@@ -290,34 +316,81 @@ gui::GridStartNode::~GridStartNode()
 
 }
 
+bool gui::GridStartNode::GetKeyTime()
+{
+	if (m_KeyTime >= m_KeyTimeMax)
+	{
+		m_KeyTime = 0.f;
+		return true;
+	}
+	else
+		return false;
+}
+
+void gui::GridStartNode::UpdateKeyTime(const float& ElapsedTime)
+{
+	if (m_KeyTime < m_KeyTimeMax)
+		m_KeyTime += 10.f * ElapsedTime;
+}
+
 const sf::Vector2f& gui::GridStartNode::GetPosition() const
 {
-	// TODO: insert return statement here
+	return m_StartingPoint.getPosition();
 }
 
-void gui::GridStartNode::SetPosition()
+void gui::GridStartNode::SetPosition(const float& x, const float& y)
 {
+	m_StartingPoint.setPosition(sf::Vector2f(x, y));
 }
 
-void gui::GridStartNode::Update(const sf::Vector2f&, const float&)
+void gui::GridStartNode::UpdateNodePosition(const sf::Vector2f& MousePos, const std::vector<Grid*>& Grid)
 {
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && m_NodeFlag && GetKeyTime() && 
+		!std::any_of(Grid.begin(), Grid.end(), [this](auto& x) 
+			{ return (x->IsActive() && x->Contains(this->GetPosition())); }))
+		m_NodeFlag = false;
+
+	if (m_StartingPoint.getGlobalBounds().contains(MousePos) &&
+		sf::Mouse::isButtonPressed(sf::Mouse::Left) && GetKeyTime())
+	{
+		m_NodeFlag = true;
+	}
+
+	if (m_NodeFlag)
+	{
+		for (const auto& e : Grid)
+		{
+			if (e->Contains(MousePos))
+			{
+				m_StartingPoint.setPosition(e->GetPosition());
+			}
+		}
+	}
+}
+
+void gui::GridStartNode::Update(const sf::Vector2f& MousePos,
+	const float& side, const std::vector<Grid*>& Grid, const float& ElapsedTime)
+{
+	this->UpdateKeyTime(ElapsedTime);
+	this->UpdateNodePosition(MousePos, Grid);
 
 }
 
 void gui::GridStartNode::Render(sf::RenderTarget* Target)
 {
-	Target->draw(m_StartSprite);
+	Target->draw(m_StartingPoint);
 }
 
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 
 gui::GridEndNode::GridEndNode(const float& x, const float& y, const float& size)
+	: m_KeyTimeMax(4.f), m_KeyTime(0.f), m_NodeFlag(false)
 {
 	m_EndTexture.loadFromFile("Images/Sprites/destination.png");
-	m_EndSprite.setPosition(sf::Vector2f(x, y));
-	m_EndSprite.setSize(sf::Vector2f(size, size));
-	m_EndSprite.setTexture(&m_EndTexture);
+	m_DestinationPoint.setPosition(sf::Vector2f(x, y));
+	m_DestinationPoint.setSize(sf::Vector2f(size, size));
+	m_DestinationPoint.setTexture(&m_EndTexture);
 }
 
 gui::GridEndNode::~GridEndNode()
@@ -325,21 +398,67 @@ gui::GridEndNode::~GridEndNode()
 
 }
 
+bool gui::GridEndNode::GetKeyTime()
+{
+	if (m_KeyTime >= m_KeyTimeMax)
+	{
+		m_KeyTime = 0.f;
+		return true;
+	}
+	else
+		return false;
+}
+
+void gui::GridEndNode::UpdateKeyTime(const float& ElapsedTime)
+{
+	if (m_KeyTime < m_KeyTimeMax)
+		m_KeyTime += 10.f * ElapsedTime;
+}
+
 const sf::Vector2f& gui::GridEndNode::GetPosition() const
 {
-	// TODO: insert return statement here
+	return m_DestinationPoint.getPosition();
 }
 
-void gui::GridEndNode::SetPosition()
+void gui::GridEndNode::SetPosition(const float& x, const float& y)
 {
+	m_DestinationPoint.setPosition(sf::Vector2f(x, y));
 }
 
-void gui::GridEndNode::Update(const sf::Vector2f&, const float&)
+void gui::GridEndNode::UpdateNodePosition(const sf::Vector2f& MousePos, const std::vector<Grid*>& Grid)
 {
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && m_NodeFlag && GetKeyTime() &&
+		!std::any_of(Grid.begin(), Grid.end(), [this](auto& x)
+			{ return (x->IsActive() && x->Contains(this->GetPosition())); }))
+		m_NodeFlag = false;
+
+	if (m_DestinationPoint.getGlobalBounds().contains(MousePos) &&
+		sf::Mouse::isButtonPressed(sf::Mouse::Left) && GetKeyTime())
+	{
+		m_NodeFlag = true;
+	}
+
+	if (m_NodeFlag)
+	{
+		for (const auto& e : Grid)
+		{
+			if (e->Contains(MousePos))
+			{
+				m_DestinationPoint.setPosition(e->GetPosition());
+			}
+		}
+	}
+}
+
+void gui::GridEndNode::Update(const sf::Vector2f& MousePos, 
+	const float& side, const std::vector<Grid*>& Grid, const float& ElapsedTime)
+{
+	this->UpdateKeyTime(ElapsedTime);
+	this->UpdateNodePosition(MousePos, Grid);
 
 }
 
 void gui::GridEndNode::Render(sf::RenderTarget* Target)
 {
-	Target->draw(m_EndSprite);
+	Target->draw(m_DestinationPoint);
 }
