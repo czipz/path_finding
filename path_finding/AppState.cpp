@@ -1,5 +1,6 @@
 #include "AppState.h"
 
+
 void AppState::InitGui()
 {
 	//Init Buttons
@@ -11,8 +12,8 @@ void AppState::InitGui()
 		m_Window->getSize().y - 700, 150, 50, "Restart",
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
-	m_Buttons["RUN_ALGORITHM"] = new gui::Button(m_Window->getSize().x - 600,
-		m_Window->getSize().y - 700, 150, 50, "Run",
+	m_Buttons["VISUALISE"] = new gui::Button(m_Window->getSize().x - 600,
+		m_Window->getSize().y - 700, 150, 50, "Visualise",
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
 	// Init Grid
@@ -33,19 +34,32 @@ void AppState::InitBackground()
 	m_Background.setSize(sf::Vector2f(m_Window->getSize().x, m_Window->getSize().y));
 	m_BackgroundTexture.loadFromFile("Images/Backgrounds/bg2.png");
 	m_Background.setTexture(&m_BackgroundTexture);
+
+	m_Font.loadFromFile("Fonts/font1.ttf");
+	m_Text.setString("Chosen algorithm: " + m_ActiveElementText);
+	m_Text.setFont(m_Font);
+	m_Text.setFillColor(sf::Color::White);
+	m_Text.setCharacterSize(40);
+	m_Text.setPosition(50, 20);
+	
 }
 
-AppState::AppState(sf::RenderWindow* Window, std::stack<State*>* States)
-	: State(Window, States), m_Side(20)
+AppState::AppState(sf::RenderWindow* Window, std::stack<State*>* States, 
+	const std::vector<std::string>& AlgList, const std::string& ActiveElementText)
+	: State(Window, States), m_Side(20), m_ActiveElementText(ActiveElementText), m_AlgList(AlgList)
 {
 	std::cout << "Created App State\n";
 	this->InitGui();
 	this->InitBackground();
+
+	m_Algorithms.emplace("A*", new alg::A_Star());
+	m_Algorithms.emplace("Dijkstra's", new alg::Dijkstra());
+
 }
 
 AppState::~AppState()
 {
-	std::cout << "Ending Game State\n";
+	std::cout << "Ending App State\n";
 
 	delete m_StartNode;
 	delete m_EndNode;
@@ -53,6 +67,11 @@ AppState::~AppState()
 	for (auto& e : m_Grid)
 	{
 		delete e;
+	}
+
+	for (auto& e : m_Algorithms)
+	{
+		delete e.second;
 	}
 }
 
@@ -89,6 +108,14 @@ void AppState::UpdateGui(const float& ElapsedTime)
 		m_StartNode->SetPosition(m_Grid[883]->GetPosition().x, m_Grid[883]->GetPosition().y);
 		m_EndNode->SetPosition(m_Grid[914]->GetPosition().x, m_Grid[914]->GetPosition().y);
 	}
+
+	// Exit Button
+	if (m_Buttons["VISUALISE"]->IsPressed())
+	{
+		//std::cout << m_ActiveElementText << std::endl;
+		m_Algorithms[m_ActiveElementText]->Run(*m_StartNode, *m_EndNode, ElapsedTime, m_Grid);
+	}
+
 }
 
 void AppState::RenderGui()
@@ -122,5 +149,6 @@ void AppState::Update(const float& ElapsedTime)
 void AppState::Render()
 {
 	m_Window->draw(m_Background);
+	m_Window->draw(m_Text);
 	this->RenderGui();
 }

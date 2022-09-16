@@ -148,9 +148,11 @@
     <ClCompile Include="Gui.cpp" />
     <ClCompile Include="MenuState.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Algorithm.cpp" />
     <ClCompile Include="State.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Algorithm.h" />
     <ClInclude Include="App.h" />
     <ClInclude Include="AppState.h" />
     <ClInclude Include="Gui.h" />

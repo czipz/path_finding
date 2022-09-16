@@ -3,7 +3,7 @@
 
 void App::InitWindow()
 {
-	m_Window = new sf::RenderWindow(sf::VideoMode(1280, 720), "Path Finding");
+	m_Window = new sf::RenderWindow(sf::VideoMode(1280, 720), "Path Finding", sf::Style::Close);
     m_Window->setFramerateLimit(120);
 }
 

@@ -55,6 +55,11 @@ void gui::Button::SetText(const sf::String& Text)
 	);
 }
 
+void gui::Button::setOutlineThickness(int thick)
+{
+	m_Button.setOutlineThickness(thick);
+}
+
 void gui::Button::Update(const sf::Vector2f& MousePos)
 {
 	m_ButtonState = BUTTON_STATES::BTN_IDLE;
@@ -92,19 +97,28 @@ void gui::Button::Render(sf::RenderTarget* Target)
 }
 
 ////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 
-gui::DropDownList::DropDownList(float x, float y, float width, float height, std::vector<std::string> List, unsigned NrOfElements, unsigned default_index)
-	: m_ShowList(false), m_KeyTimeMax(1.f), m_KeyTime(0.f)
+gui::DropDownList::DropDownList(float x, float y, float width, float height, 
+	std::vector<std::string> List, unsigned NrOfElements, unsigned default_index)
+	: m_ShowList(false), m_KeyTimeMax(2.f), m_KeyTime(0.f)
 {
-	m_ActiveElement = new gui::Button(x, y, width, height, List[1],
-		sf::Color(70, 70, 70, 200), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
+	m_ActiveElement = new gui::Button(x, y, width, height, List[0],
+		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
 	for (int i = 0; i < NrOfElements; ++i)
 	{
 		m_List.push_back(new gui::Button(x, y + ((i+1) * height), width, height, List[i],
-			sf::Color(70, 70, 70, 200), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200)));
+			sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200)));
 	}
+
+	// Triangle on the Drop Down List
+	m_Triangle.setRadius(10.f);
+	m_Triangle.setPointCount(3);
+	m_Triangle.setFillColor(sf::Color::White);
+	m_Triangle.setPosition(560, 360);
+	m_Triangle.setOrigin(10, 6.67);
+	m_Triangle.rotate(180);
 }
 
 gui::DropDownList::~DropDownList()
@@ -133,6 +147,11 @@ void gui::DropDownList::UpdateKeyTime(const float& ElapsedTime)
 		m_KeyTime += 10.f * ElapsedTime;
 }
 
+std::string gui::DropDownList::GetActiveElementText() const
+{
+	return m_ActiveElement->GetText();
+}
+
 void gui::DropDownList::Update(const sf::Vector2f& MousePos, const float& ElapsedTime)
 {
 	this->UpdateKeyTime(ElapsedTime);
@@ -141,10 +160,17 @@ void gui::DropDownList::Update(const sf::Vector2f& MousePos, const float& Elapse
 	if (m_ActiveElement->IsPressed() && this->GetKeyTime())
 	{
 		if (m_ShowList)
+		{	
+			m_ActiveElement->setOutlineThickness(1);
+			m_Triangle.rotate(180);
 			m_ShowList = false;
-		
+		}
 		else
+		{
+			m_ActiveElement->setOutlineThickness(-3);
+			m_Triangle.rotate(180);
 			m_ShowList = true;
+		}
 	}
 
 	if (m_ShowList)
@@ -155,6 +181,8 @@ void gui::DropDownList::Update(const sf::Vector2f& MousePos, const float& Elapse
 
 			if (i->IsPressed() && this->GetKeyTime())
 			{
+				m_ActiveElement->setOutlineThickness(1);
+				m_Triangle.rotate(180);
 				m_ShowList = false;
 				m_ActiveElement->SetText(i->GetText());
 			}
@@ -165,6 +193,7 @@ void gui::DropDownList::Update(const sf::Vector2f& MousePos, const float& Elapse
 void gui::DropDownList::Render(sf::RenderTarget* Target)
 {
 	m_ActiveElement->Render(Target);
+	Target->draw(m_Triangle);
 
 	if (m_ShowList)
 	{

@@ -55,6 +55,7 @@ namespace gui
 		std::string GetText() const;
 
 		void SetText(const sf::String& Text);
+		void setOutlineThickness(int);
 
 		void Update(const sf::Vector2f&);
 		void Render(sf::RenderTarget*);
@@ -71,12 +72,16 @@ namespace gui
 		float m_KeyTime;
 		float m_KeyTimeMax;
 
+		sf::CircleShape m_Triangle;
+
 	public:
 		DropDownList(float, float, float, float, std::vector<std::string>, unsigned, unsigned);
 		virtual ~DropDownList();
 
 		bool GetKeyTime();
 		void UpdateKeyTime(const float&);
+
+		std::string GetActiveElementText() const;
 
 		void Update(const sf::Vector2f&, const float&);
 		void Render(sf::RenderTarget*);
@@ -170,8 +175,6 @@ namespace gui
 		void Update(const sf::Vector2f&, const float&, const std::vector<Grid*>&, const float&);
 		void Render(sf::RenderTarget*);
 	};
-
-
 }
 
 

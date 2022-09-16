@@ -8,6 +8,8 @@ private:
 	sf::Text m_Text;
 	sf::RectangleShape m_Background;
 	sf::Texture m_BackgroundTexture;
+	std::vector<std::string> m_AlgList;
+
 
 	std::map<std::string, gui::DropDownList*> m_DropDownLists;
 
