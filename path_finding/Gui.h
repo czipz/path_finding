@@ -19,13 +19,9 @@ enum class BUTTON_STATES
 
 enum class GRID_STATES
 {
-	GRID_IDLE, GRID_ACTIVE
+	GRID_ACTIVE = -1, GRID_IDLE
 };
 
-enum class GRID_NODES_STATES
-{
-	NODE_IDLE, NODE_ACTIVE
-};
 
 namespace gui
 {
@@ -91,6 +87,7 @@ namespace gui
 	{
 	private:
 		GRID_STATES m_GridState;
+		int m_Distance;
 
 		sf::RectangleShape m_Grid;
 		sf::Color m_IdleColor;
@@ -107,16 +104,16 @@ namespace gui
 		bool GetKeyTime();
 		void UpdateKeyTime(const float&);
 
-		bool IsPressed() const;
-
 		void ChangeToIdleState();
 
 		const sf::Vector2f& GetPosition() const;
 		bool IsActive() const;
 		bool Contains(const sf::Vector2f&) const;
+
+		void SetDistance(int);
+		int GetDistance() const;
 	
 		
-
 		void Update(const sf::Vector2f&, const float&,
 			GridStartNode*, GridEndNode*);
 		void Render(sf::RenderTarget*);

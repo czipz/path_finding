@@ -17,16 +17,24 @@ void AppState::InitGui()
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
 	// Init Grid
-	for (unsigned y = 5; y < (m_Window->getSize().y / m_Side) - 1; ++y)
+	for (unsigned y = 4; y < (m_Window->getSize().y / m_Side); ++y)
 	{
-		for (unsigned x = 1; x < (m_Window->getSize().x / m_Side) - 1; ++x)
-			m_Grid.push_back(new gui::Grid(m_Side * x, m_Side * y, m_Side,
-				sf::Color(169, 169, 169), sf::Color::Black, sf::Color::White));
+		
+		for (unsigned x = 0; x < (m_Window->getSize().x / m_Side); ++x)
+		{
+			if (y == 4  || y == m_Window->getSize().y / m_Side - 1 || x == 0 || x == m_Window->getSize().x / m_Side - 1)
+				m_Grid.push_back(new gui::Grid(m_Side * x, m_Side * y, m_Side,
+					sf::Color(0, 0, 0, 0), sf::Color(0, 0, 0, 0), sf::Color(0, 0, 0, 0)));
+			else
+				m_Grid.push_back(new gui::Grid(m_Side * x, m_Side * y, m_Side,
+					sf::Color(169, 169, 169), sf::Color::Black, sf::Color::White));
+		}
 	}
 
 	//Init Grid Nodes
-	m_StartNode = new gui::GridStartNode(m_Grid[883]->GetPosition().x, m_Grid[883]->GetPosition().y, m_Side);
-	m_EndNode = new gui::GridEndNode(m_Grid[914]->GetPosition().x, m_Grid[914]->GetPosition().y, m_Side);
+	m_StartNode = new gui::GridStartNode(m_Grid[976]->GetPosition().x, m_Grid[976]->GetPosition().y, m_Side);
+	m_EndNode = new gui::GridEndNode(m_Grid[1007]->GetPosition().x, m_Grid[1007]->GetPosition().y, m_Side);
+	m_Grid[976]->SetDistance(1);
 }
 
 void AppState::InitBackground()
@@ -54,6 +62,7 @@ AppState::AppState(sf::RenderWindow* Window, std::stack<State*>* States,
 
 	m_Algorithms.emplace("A*", new alg::A_Star());
 	m_Algorithms.emplace("Dijkstra's", new alg::Dijkstra());
+	m_Algorithms.emplace("Wavefront", new alg:: Wavefront());
 
 }
 
@@ -105,8 +114,10 @@ void AppState::UpdateGui(const float& ElapsedTime)
 		{
 			e->ChangeToIdleState();
 		}
-		m_StartNode->SetPosition(m_Grid[883]->GetPosition().x, m_Grid[883]->GetPosition().y);
-		m_EndNode->SetPosition(m_Grid[914]->GetPosition().x, m_Grid[914]->GetPosition().y);
+		m_StartNode->SetPosition(m_Grid[976]->GetPosition().x, m_Grid[976]->GetPosition().y);
+		m_EndNode->SetPosition(m_Grid[1007]->GetPosition().x, m_Grid[1007]->GetPosition().y);
+		m_Grid[976]->SetDistance(1);
+		std::cout << "Reset " << m_Grid[976]->GetDistance() << std::endl;
 	}
 
 	// Exit Button

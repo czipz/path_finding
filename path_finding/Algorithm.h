@@ -9,8 +9,6 @@ namespace alg
 	protected:
 
 	public:
-		Algorithm();
-		virtual ~Algorithm();
 
 		virtual void Run(const gui::GridStartNode&, const gui::GridEndNode&,
 			const float&, std::vector<gui::Grid*>&) = 0;
@@ -21,8 +19,6 @@ namespace alg
 	private:
 
 	public:
-		A_Star();
-		~A_Star();
 
 		void Run(const gui::GridStartNode&, const gui::GridEndNode&,
 			const float&, std::vector<gui::Grid*>&);
@@ -33,8 +29,16 @@ namespace alg
 	private:
 
 	public:
-		Dijkstra();
-		~Dijkstra();
+
+		void Run(const gui::GridStartNode&, const gui::GridEndNode&,
+			const float&, std::vector<gui::Grid*>&);
+	};
+
+	class Wavefront : public Algorithm
+	{
+	private:
+
+	public:
 
 		void Run(const gui::GridStartNode&, const gui::GridEndNode&,
 			const float&, std::vector<gui::Grid*>&);

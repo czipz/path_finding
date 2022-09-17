@@ -11,7 +11,7 @@ void MenuState::InitGui()
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
 
-	m_AlgList = { "A*", "Dijkstra's" };
+	m_AlgList = { "A*", "Dijkstra's", "Wavefront"};
 	m_DropDownLists["ALGORITHMS"] = new gui::DropDownList(m_Window->getSize().x - 900, 
 		m_Window->getSize().y / 2 - 25, 200, 50, m_AlgList, m_AlgList.size(), 0);
 }
