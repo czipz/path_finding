@@ -4,9 +4,10 @@
 #include <vector>
 #include <stack>
 #include <map>
-#include <iterator>
 #include <algorithm>
-#include <chrono>
+#include <thread>
+#include <future>
+
 
 #include "SFML/Graphics.hpp"
 #include "SFML/Window.hpp"
@@ -23,7 +24,7 @@ protected:
 	sf::Vector2i m_MousePosWindow;
 	sf::Vector2f m_MousePosView;
 	std::map<std::string, gui::Button*> m_Buttons;
-
+	sf::Event m_SfEvent;
 	virtual void InitGui() = 0;
 
 public:
@@ -31,14 +32,19 @@ public:
 	virtual ~State();
 
 	const bool& GetQuit() const;
-	void CheckForQuit();
 
+	sf::Vector2f GetMousePosView() const;
+	void UpdateMousePositions();
+
+	virtual void UpdateSFMLEvents(const float&) = 0;
 	virtual void UpdateGui(const float&) = 0;
 	virtual void RenderGui() = 0;
 
-	void UpdateMousePositions();
-	virtual void UpdateInput(const float&) = 0;
+	//virtual int GetGridIndex() const = 0;
+
 	virtual void Update(const float&) = 0;
 	virtual void Render() = 0;
+
+
 };
 

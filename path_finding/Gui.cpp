@@ -32,13 +32,11 @@ gui::Button::~Button()
 
 }
 
-bool gui::Button::IsPressed() const
+bool gui::Button::Contains(const sf::Vector2f& Something) const
 {
-	if (m_ButtonState == BUTTON_STATES::BTN_ACTIVE)
-		return true;
-
-	return false; 
+	return m_Button.getGlobalBounds().contains(Something);
 }
+
 
 std::string gui::Button::GetText() const
 {
@@ -72,6 +70,7 @@ void gui::Button::Update(const sf::Vector2f& MousePos)
 			m_ButtonState = BUTTON_STATES::BTN_ACTIVE;
 		}
 	}
+
 
 	switch (m_ButtonState)
 	{
@@ -130,34 +129,25 @@ gui::DropDownList::~DropDownList()
 	}
 }
 
-bool gui::DropDownList::GetKeyTime()
-{
-	if (m_KeyTime >= m_KeyTimeMax)
-	{
-		m_KeyTime = 0.f;
-		return true;
-	}
-	else
-		return false;
-}
-
-void gui::DropDownList::UpdateKeyTime(const float& ElapsedTime)
-{
-	if (m_KeyTime < m_KeyTimeMax)
-		m_KeyTime += 10.f * ElapsedTime;
-}
-
 std::string gui::DropDownList::GetActiveElementText() const
 {
 	return m_ActiveElement->GetText();
 }
 
+void gui::DropDownList::UpdateButtonState(const sf::Vector2f& MousePos)
+{
+	m_ActiveElement->Update(MousePos);
+	for (auto& e : m_List)
+	{
+		e->Update(MousePos);
+	}
+}
+
 void gui::DropDownList::Update(const sf::Vector2f& MousePos, const float& ElapsedTime)
 {
-	this->UpdateKeyTime(ElapsedTime);
 
-	m_ActiveElement->Update(MousePos);
-	if (m_ActiveElement->IsPressed() && this->GetKeyTime())
+	//m_ActiveElement->Update(MousePos);
+	if (m_ActiveElement->Contains(MousePos)/* && this->GetKeyTime()*/)
 	{
 		if (m_ShowList)
 		{	
@@ -177,9 +167,9 @@ void gui::DropDownList::Update(const sf::Vector2f& MousePos, const float& Elapse
 	{
 		for (auto& i : m_List)
 		{
-			i->Update(MousePos);
+			//i->Update(MousePos);
 
-			if (i->IsPressed() && this->GetKeyTime())
+			if (i->Contains(MousePos)/* && this->GetKeyTime()*/)
 			{
 				m_ActiveElement->setOutlineThickness(1);
 				m_Triangle.rotate(180);
@@ -237,24 +227,6 @@ gui::Grid::~Grid()
 	
 }
 
-bool gui::Grid::GetKeyTime()
-{
-	if (m_KeyTime >= m_KeyTimeMax)
-	{
-		m_KeyTime = 0.f;
-		return true;
-	}
-	else
-		return false;
-}
-
-void gui::Grid::UpdateKeyTime(const float& ElapsedTime)
-{
-	if (m_KeyTime < m_KeyTimeMax)
-		m_KeyTime += 10.f * ElapsedTime;
-	//std::cout << m_KeyTime << std::endl;
-}
-
 void gui::Grid::ChangeToIdleState()
 {
 	if (m_GridState == GRID_STATES::GRID_ACTIVE && m_Grid.getFillColor() != sf::Color(0, 0, 0, 0))
@@ -291,51 +263,31 @@ void gui::Grid::SetDistance(int Distance)
 	m_Distance = Distance;
 }
 
-void gui::Grid::Update(const sf::Vector2f& MousePos, const float& ElapsedTime,
+void gui::Grid::UpdateLeft(const sf::Vector2f& MousePos,
 	 GridStartNode* StartNode, GridEndNode* EndNode)
 {
-	this->UpdateKeyTime(ElapsedTime);
-
-	if (m_Grid.getGlobalBounds().contains(MousePos) &&
-		sf::Mouse::isButtonPressed(sf::Mouse::Left) &&
-		m_GridState == GRID_STATES::GRID_IDLE && this->GetKeyTime() && 
-		!(m_Grid.getGlobalBounds().contains(StartNode->GetPosition()) ||
+	if (m_Grid.getFillColor() != sf::Color(0, 0, 0, 0) && m_GridState == GRID_STATES::GRID_IDLE &&
+		!(m_Grid.getGlobalBounds().contains(StartNode->GetPosition()) || 
 			m_Grid.getGlobalBounds().contains(EndNode->GetPosition())))
 	{
 		m_GridState = GRID_STATES::GRID_ACTIVE;
 		m_Distance = -1;
 		std::cout << "Left click " << m_Distance << std::endl;
+		m_Grid.setFillColor(m_ActiveColor);
 	}
+}
 
-	if (m_Grid.getGlobalBounds().contains(MousePos) &&
-		sf::Mouse::isButtonPressed(sf::Mouse::Right) &&
-		m_GridState == GRID_STATES::GRID_ACTIVE && this->GetKeyTime() &&
-		m_Grid.getFillColor() != sf::Color(0, 0, 0, 0))
+void gui::Grid::UpdateRight(const sf::Vector2f& MousePos,
+	GridStartNode* StartNode, GridEndNode* EndNode)
+{
+	if (m_Grid.getFillColor() != sf::Color(0, 0, 0, 0) && m_GridState == GRID_STATES::GRID_ACTIVE &&
+		!(m_Grid.getGlobalBounds().contains(StartNode->GetPosition()) || 
+			m_Grid.getGlobalBounds().contains(EndNode->GetPosition())))
 	{
 		m_GridState = GRID_STATES::GRID_IDLE;
 		m_Distance = 0;
 		std::cout << "Right click " << m_Distance << std::endl;
-	}
-
-	//if (m_Grid.getGlobalBounds().contains(MousePos) &&
-	//	sf::Mouse::isButtonPressed(sf::Mouse::Left) &&
-	//	m_GridState == GRID_STATES::GRID_ACTIVE &&
-	//	this->GetKeyTime())
-	//{
-	//	m_GridState = GRID_STATES::GRID_IDLE;
-	//}
-
-	switch (m_GridState)
-	{
-	case GRID_STATES::GRID_IDLE:
 		m_Grid.setFillColor(m_IdleColor);
-		break;
-	case GRID_STATES::GRID_ACTIVE:
-		m_Grid.setFillColor(m_ActiveColor);
-		break;
-	default:
-		m_Grid.setFillColor(sf::Color::Red);
-		break;
 	}
 }
 
@@ -361,23 +313,6 @@ gui::GridStartNode::~GridStartNode()
 
 }
 
-bool gui::GridStartNode::GetKeyTime()
-{
-	if (m_KeyTime >= m_KeyTimeMax)
-	{
-		m_KeyTime = 0.f;
-		return true;
-	}
-	else
-		return false;
-}
-
-void gui::GridStartNode::UpdateKeyTime(const float& ElapsedTime)
-{
-	if (m_KeyTime < m_KeyTimeMax)
-		m_KeyTime += 10.f * ElapsedTime;
-}
-
 const sf::Vector2f& gui::GridStartNode::GetPosition() const
 {
 	return m_StartingPoint.getPosition();
@@ -388,58 +323,30 @@ void gui::GridStartNode::SetPosition(const float& x, const float& y)
 	m_StartingPoint.setPosition(sf::Vector2f(x, y));
 }
 
-void gui::GridStartNode::UpdateNodePosition(const sf::Vector2f& MousePos, const std::vector<Grid*>& Grid)
+void gui::GridStartNode::Update(const sf::Vector2f& MousePos, 
+	const std::vector<Grid*>& Grid, const int& Index)
 {
-	 //Drop  the node
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && m_NodeFlag && GetKeyTime() &&
-		!std::any_of(Grid.begin(), Grid.end(), [&MousePos](auto& x)
-			{ return (x->IsActive() && x->Contains(MousePos)); }))
-	{
-		m_NodeFlag = false;
-		for (auto& e : Grid)
-		{
-			if (e->Contains(this->GetPosition()))
-			{
-				e->SetDistance(1);
-				std::cout << "Drop " << e->GetDistance() << std::endl;
-			}
-		}
-	}
-
-
 	// Pick up the node
-	if (m_StartingPoint.getGlobalBounds().contains(MousePos) &&
-		sf::Mouse::isButtonPressed(sf::Mouse::Left) && GetKeyTime())
+	if (m_StartingPoint.getGlobalBounds().contains(MousePos))
 	{
 		m_NodeFlag = true;
-		for (auto& e : Grid)
-		{
-			if (e->GetDistance() == 1)
-			{
-				e->SetDistance(0);
-				std::cout << "Pickup " << e->GetDistance() << std::endl;
-			}
-		}
+		Grid[Index]->SetDistance(0);
+		std::cout << "Pickup " << Grid[Index]->GetDistance() << std::endl;
+	}
+
+	// Drop the node
+	if (m_NodeFlag && !Grid[Index]->IsActive() && Grid[Index]->Contains(MousePos))
+	{
+		m_NodeFlag = false;
+		Grid[Index]->SetDistance(1);
+		std::cout << "Drop " << Grid[Index]->GetDistance() << std::endl;
 	}
 
 	if (m_NodeFlag)
 	{
-		for (const auto& e : Grid)
-		{
-			if (e->Contains(MousePos) && !e->IsActive())
-			{
-				m_StartingPoint.setPosition(e->GetPosition());
-			}
-		}
+		if (!Grid[Index]->IsActive())
+			m_StartingPoint.setPosition(Grid[Index]->GetPosition());
 	}
-}
-
-void gui::GridStartNode::Update(const sf::Vector2f& MousePos,
-	const float& side, const std::vector<Grid*>& Grid, const float& ElapsedTime)
-{
-	this->UpdateKeyTime(ElapsedTime);
-	this->UpdateNodePosition(MousePos, Grid);
-
 }
 
 void gui::GridStartNode::Render(sf::RenderTarget* Target)
@@ -516,8 +423,7 @@ void gui::GridEndNode::UpdateNodePosition(const sf::Vector2f& MousePos, const st
 	}
 }
 
-void gui::GridEndNode::Update(const sf::Vector2f& MousePos, 
-	const float& side, const std::vector<Grid*>& Grid, const float& ElapsedTime)
+void gui::GridEndNode::Update(const sf::Vector2f& MousePos, const std::vector<Grid*>& Grid, const float& ElapsedTime)
 {
 	this->UpdateKeyTime(ElapsedTime);
 	this->UpdateNodePosition(MousePos, Grid);

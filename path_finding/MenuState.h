@@ -23,9 +23,9 @@ public:
 	void UpdateGui(const float&);
 	void RenderGui();
 
-	void UpdateInput(const float&);
 	void Update(const float&);
 
 	void Render();
+	void UpdateSFMLEvents(const float& ElapsedTime) override;
 };
 

@@ -36,18 +36,9 @@ void App::UpdateElapsedTime()
     //std::cout << "ElapsedTime: " << m_ElapsedTime << std::endl;
 }
 
-void App::UpdateSFMLEvents()
-{
-    while (m_Window->pollEvent(m_SfEvent))
-    {
-        if (m_SfEvent.type == sf::Event::Closed)
-            m_Window->close();
-    }
-}
 
 void App::Update()
 {
-    this->UpdateSFMLEvents();
     if (!m_States.empty())
     {
         m_States.top()->Update(m_ElapsedTime);

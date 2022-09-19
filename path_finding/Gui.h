@@ -47,7 +47,7 @@ namespace gui
 			sf::Color, sf::Color, sf::Color);
 		~Button();
 
-		bool IsPressed() const;
+		bool Contains(const sf::Vector2f&) const;
 		std::string GetText() const;
 
 		void SetText(const sf::String& Text);
@@ -74,10 +74,8 @@ namespace gui
 		DropDownList(float, float, float, float, std::vector<std::string>, unsigned, unsigned);
 		virtual ~DropDownList();
 
-		bool GetKeyTime();
-		void UpdateKeyTime(const float&);
-
 		std::string GetActiveElementText() const;
+		void UpdateButtonState(const sf::Vector2f&);
 
 		void Update(const sf::Vector2f&, const float&);
 		void Render(sf::RenderTarget*);
@@ -101,9 +99,6 @@ namespace gui
 		Grid(const float&, const float&, const float&, sf::Color, sf::Color, sf::Color);
 		~Grid();
 
-		bool GetKeyTime();
-		void UpdateKeyTime(const float&);
-
 		void ChangeToIdleState();
 
 		const sf::Vector2f& GetPosition() const;
@@ -114,7 +109,9 @@ namespace gui
 		int GetDistance() const;
 	
 		
-		void Update(const sf::Vector2f&, const float&,
+		void UpdateLeft(const sf::Vector2f&,
+			GridStartNode*, GridEndNode*);
+		void UpdateRight(const sf::Vector2f&,
 			GridStartNode*, GridEndNode*);
 		void Render(sf::RenderTarget*);
 	};
@@ -134,15 +131,10 @@ namespace gui
 		GridStartNode(const float&, const float&, const float&);
 		~GridStartNode();
 
-		bool GetKeyTime();
-		void UpdateKeyTime(const float&);
-
 		const sf::Vector2f& GetPosition() const;
 		void SetPosition(const float&, const float&);
 
-		void UpdateNodePosition(const sf::Vector2f&, const std::vector<Grid*>&);
-
-		void Update(const sf::Vector2f&, const float&, const std::vector<Grid*>&, const float&);
+		void Update(const sf::Vector2f&, const std::vector<Grid*>&, const int&);
 		void Render(sf::RenderTarget*);
 	};
 
@@ -169,7 +161,7 @@ namespace gui
 
 		void UpdateNodePosition(const sf::Vector2f&, const std::vector<Grid*>&);
 
-		void Update(const sf::Vector2f&, const float&, const std::vector<Grid*>&, const float&);
+		void Update(const sf::Vector2f&, const std::vector<Grid*>&, const float&);
 		void Render(sf::RenderTarget*);
 	};
 }

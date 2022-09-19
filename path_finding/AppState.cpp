@@ -17,9 +17,12 @@ void AppState::InitGui()
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
 	// Init Grid
+
+	//Rows Number = m_Window->getSize().y / m_Side - 4;
+	m_ColumnsNumber = m_Window->getSize().x / m_Side;
+
 	for (unsigned y = 4; y < (m_Window->getSize().y / m_Side); ++y)
 	{
-		
 		for (unsigned x = 0; x < (m_Window->getSize().x / m_Side); ++x)
 		{
 			if (y == 4  || y == m_Window->getSize().y / m_Side - 1 || x == 0 || x == m_Window->getSize().x / m_Side - 1)
@@ -35,6 +38,18 @@ void AppState::InitGui()
 	m_StartNode = new gui::GridStartNode(m_Grid[976]->GetPosition().x, m_Grid[976]->GetPosition().y, m_Side);
 	m_EndNode = new gui::GridEndNode(m_Grid[1007]->GetPosition().x, m_Grid[1007]->GetPosition().y, m_Side);
 	m_Grid[976]->SetDistance(1);
+}
+
+
+int AppState::GetGridIndex()
+{
+	m_MouseX = m_MousePosView.x;
+	m_MouseY = m_MousePosView.y;
+
+	m_ColumnIndex = static_cast<int>(m_MouseX / m_Side);
+	m_RowIndex = static_cast<int>(m_MouseY / m_Side) - 4;
+	m_Index = m_RowIndex * m_ColumnsNumber + m_ColumnIndex;
+	return m_Index;
 }
 
 void AppState::InitBackground()
@@ -54,11 +69,13 @@ void AppState::InitBackground()
 
 AppState::AppState(sf::RenderWindow* Window, std::stack<State*>* States, 
 	const std::vector<std::string>& AlgList, const std::string& ActiveElementText)
-	: State(Window, States), m_Side(20), m_ActiveElementText(ActiveElementText), m_AlgList(AlgList)
+	: State(Window, States), m_Side(20), m_ActiveElementText(ActiveElementText), m_AlgList(AlgList),
+		m_VisualiseFlag(false)
 {
 	std::cout << "Created App State\n";
 	this->InitGui();
 	this->InitBackground();
+
 
 	m_Algorithms.emplace("A*", new alg::A_Star());
 	m_Algorithms.emplace("Dijkstra's", new alg::Dijkstra());
@@ -91,42 +108,23 @@ void AppState::UpdateGui(const float& ElapsedTime)
 		it->second->Update(m_MousePosView);
 	}
 
-	// Update Nodes
-	m_StartNode->Update(m_MousePosView, m_Side, m_Grid, ElapsedTime);
-	m_EndNode->Update(m_MousePosView, m_Side, m_Grid, ElapsedTime);
 
-	// Update Grid
-	for (const auto& e : m_Grid)
-	{
-		e->Update(m_MousePosView, ElapsedTime, m_StartNode, m_EndNode);
-	}
 
 	// Exit Button
-	if (m_Buttons["EXIT_STATE"]->IsPressed())
-	{
-		m_Quit = true;
-	}
-
-	// Clear Button
-	if (m_Buttons["RESTART_GRID"]->IsPressed())
-	{
-		for (auto& e : m_Grid)
-		{
-			e->ChangeToIdleState();
-		}
-		m_StartNode->SetPosition(m_Grid[976]->GetPosition().x, m_Grid[976]->GetPosition().y);
-		m_EndNode->SetPosition(m_Grid[1007]->GetPosition().x, m_Grid[1007]->GetPosition().y);
-		m_Grid[976]->SetDistance(1);
-		std::cout << "Reset " << m_Grid[976]->GetDistance() << std::endl;
-	}
-
-	// Exit Button
-	if (m_Buttons["VISUALISE"]->IsPressed())
-	{
-		//std::cout << m_ActiveElementText << std::endl;
-		m_Algorithms[m_ActiveElementText]->Run(*m_StartNode, *m_EndNode, ElapsedTime, m_Grid);
-	}
-
+	//if (m_Buttons["VISUALISE"]->IsPressed())
+	//{
+	//	//if (m_ActiveElementText == "A*")
+	//	//	std::thread Thread(&alg::A_Star::Run, std::ref(m_A_Star),
+	//	//		std::ref(*m_StartNode), std::ref(*m_EndNode), std::ref(ElapsedTime), std::ref(m_Grid));
+	//	//else if (m_ActiveElementText == "Dijkstra's")
+	//	//	std::thread Thread(&alg::Dijkstra::Run, std::ref(m_Dijkstra),
+	//	//		std::ref(*m_StartNode), std::ref(*m_EndNode), std::ref(ElapsedTime), std::ref(m_Grid));
+	//	//else if (m_ActiveElementText == "Wavefront")
+	//	//	std::thread Thread(&alg::Wavefront::Run, std::ref(m_Wavefront),
+	//	//		std::ref(*m_StartNode), std::ref(*m_EndNode),  std::ref(ElapsedTime), std::ref(m_Grid));
+	//	std::thread Thread(&alg::Algorithm::Run, std::ref(*m_Algorithms[m_ActiveElementText]),
+	//		std::ref(*m_StartNode), std::ref(*m_EndNode), std::ref(ElapsedTime), std::ref(m_Grid));
+	//}
 }
 
 void AppState::RenderGui()
@@ -145,16 +143,11 @@ void AppState::RenderGui()
 	m_EndNode->Render(m_Window);
 }
 
-void AppState::UpdateInput(const float& ElapsedTime)
-{
-	this->CheckForQuit();
-}
-
 void AppState::Update(const float& ElapsedTime)
 {
-	this->UpdateMousePositions();
-	this->UpdateInput(ElapsedTime);
-	this->UpdateGui(ElapsedTime);
+	UpdateMousePositions();
+	UpdateSFMLEvents(ElapsedTime);
+	UpdateGui(ElapsedTime);
 }
 
 void AppState::Render()
@@ -163,3 +156,72 @@ void AppState::Render()
 	m_Window->draw(m_Text);
 	this->RenderGui();
 }
+
+void AppState::UpdateSFMLEvents(const float& ElapsedTime)
+{
+	while (m_Window->pollEvent(m_SfEvent))
+	{
+		int index = GetGridIndex();
+		switch (m_SfEvent.type)
+		{
+		case sf::Event::Closed:
+			m_Window->close();
+			break;
+		case sf::Event::MouseButtonPressed:
+			// Update Grid
+			if (!m_VisualiseFlag)
+			{
+				if (index >= 0 && index < m_Grid.size())
+				{
+					if (m_SfEvent.mouseButton.button == sf::Mouse::Left)
+						m_Grid[index]->UpdateLeft(m_MousePosView, m_StartNode, m_EndNode);
+
+					else if (m_SfEvent.mouseButton.button == sf::Mouse::Right)
+						m_Grid[index]->UpdateRight(m_MousePosView, m_StartNode, m_EndNode);
+				}
+			}
+			break;
+
+		case sf::Event::MouseButtonReleased:
+			if (!m_VisualiseFlag)
+			{
+				if (m_SfEvent.mouseButton.button == sf::Mouse::Left)
+				{
+					if (index >= 0 && index < m_Grid.size())
+					{
+						m_StartNode->Update(m_MousePosView, m_Grid, index);
+						m_EndNode->Update(m_MousePosView, m_Grid, index);
+					}
+
+					if (m_Buttons["VISUALISE"]->Contains(m_MousePosView))
+					{
+						m_VisualiseFlag = true;
+						std::thread Thread(&alg::Algorithm::Run, std::ref(*m_Algorithms[m_ActiveElementText]),
+							std::ref(*m_StartNode), std::ref(*m_EndNode), std::ref(ElapsedTime), std::ref(m_Grid), std::ref(m_VisualiseFlag));
+						Thread.detach();
+					}
+
+					if (m_Buttons["EXIT_STATE"]->Contains(m_MousePosView))
+					{
+						m_Quit = true;
+					}
+
+					// Clear Button
+					if (m_Buttons["RESTART_GRID"]->Contains(m_MousePosView))
+					{
+						for (auto& e : m_Grid)
+						{
+							e->ChangeToIdleState();
+						}
+						m_StartNode->SetPosition(m_Grid[976]->GetPosition().x, m_Grid[976]->GetPosition().y);
+						m_EndNode->SetPosition(m_Grid[1007]->GetPosition().x, m_Grid[1007]->GetPosition().y);
+						m_Grid[976]->SetDistance(1);
+						std::cout << "Reset " << m_Grid[976]->GetDistance() << std::endl;
+					}
+				}
+			}
+			break;
+		}
+	}
+}
+

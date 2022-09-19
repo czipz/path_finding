@@ -53,19 +53,10 @@ void MenuState::UpdateGui(const float& ElapsedTime)
 		it->second->Update(m_MousePosView);
 	}
 
-	// Start app
-	if (m_Buttons["APP_STATE"]->IsPressed())
+	for (auto& [k, v] : m_DropDownLists)
 	{
-		m_States->push(new AppState(m_Window, m_States, m_AlgList, 
-			m_DropDownLists["ALGORITHMS"]->GetActiveElementText()));
+		v->UpdateButtonState(m_MousePosView);
 	}
-	// exit 
-	if (m_Buttons["EXIT_STATE"]->IsPressed())
-	{
-		m_Quit = true;
-	}
-
-	m_DropDownLists["ALGORITHMS"]->Update(m_MousePosView, ElapsedTime);
 }
 
 void MenuState::RenderGui()
@@ -81,21 +72,48 @@ void MenuState::RenderGui()
 	}
 }
 
-void MenuState::UpdateInput(const float& ElapsedTime)
-{
-	this->CheckForQuit();
-}
-
 void MenuState::Update(const float& ElapsedTime)
 {
-	this->UpdateInput(ElapsedTime);
-	this->UpdateMousePositions();
-	this->UpdateGui(ElapsedTime);
-}
+	UpdateMousePositions();
+	UpdateGui(ElapsedTime);
+	UpdateSFMLEvents(ElapsedTime);
+}	
 
 void MenuState::Render()
 {
 	m_Window->draw(m_Background);
 	m_Window->draw(m_Text);
 	this->RenderGui();
+}
+
+void MenuState::UpdateSFMLEvents(const float& ElapsedTime)
+{
+	while (m_Window->pollEvent(m_SfEvent))
+	{
+		switch (m_SfEvent.type)
+		{
+		case sf::Event::Closed:
+			m_Window->close();
+			break;
+
+		case sf::Event::MouseButtonReleased:
+			if (m_SfEvent.mouseButton.button == sf::Mouse::Left)
+			{
+				// Start app
+				if (m_Buttons["APP_STATE"]->Contains(m_MousePosView))
+				{
+					m_States->push(new AppState(m_Window, m_States, m_AlgList,
+						m_DropDownLists["ALGORITHMS"]->GetActiveElementText()));
+				}
+				// exit 
+				if (m_Buttons["EXIT_STATE"]->Contains(m_MousePosView))
+				{
+					m_Quit = true;
+				}
+				m_DropDownLists["ALGORITHMS"]->Update(m_MousePosView, ElapsedTime);
+			}
+			break;
+		}
+
+	}
 }

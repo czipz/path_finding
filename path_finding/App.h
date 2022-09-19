@@ -7,7 +7,7 @@ class App
 private:
 	// Variables
 	sf::RenderWindow* m_Window;
-	sf::Event m_SfEvent;
+	
 
 	sf::Clock m_ElapsedTimeClock;
 	float m_ElapsedTime;
@@ -23,7 +23,6 @@ public:
 	virtual ~App();
 
 	void UpdateElapsedTime();
-	void UpdateSFMLEvents();
 	void Update();
 
 	void Render();
