@@ -186,7 +186,7 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 			break;
 		case sf::Event::MouseButtonPressed:
 			// Update Grid
-			if (!m_VisualiseFlag)
+			if (!m_VisualiseFlag && GetGridIndex() >= 0 && GetGridIndex() < m_Grid.size())
 			{
 				if (m_SfEvent.mouseButton.button == sf::Mouse::Left)
 				{
@@ -214,11 +214,28 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 			{
 				if (m_SfEvent.mouseButton.button == sf::Mouse::Left)
 				{
-					if (m_LeftClickNodeFlag)
+					if (m_LeftClickNodeFlag && GetGridIndex() >= 0 && GetGridIndex() < m_Grid.size())
 					{
 						m_LeftClickNodeFlag = false;
 						m_StartNode->SetNodeFlag(*m_EndNode, m_Grid, m_MousePosView, GetGridIndex(), m_ColumnsNumber, m_Side);
 						m_EndNode->SetNodeFlag(*m_StartNode, m_Grid, m_MousePosView, GetGridIndex(), m_ColumnsNumber, m_Side);
+					}
+					else if (m_LeftClickNodeFlag && (GetGridIndex() < 0 || GetGridIndex() > m_Grid.size()))
+					{
+						m_LeftClickNodeFlag = false;
+						m_StartNode->SetPosition(m_StartNode->GetPosition().x, m_StartNode->GetPosition().y);
+						int ColumnIndex = static_cast<int>(m_StartNode->GetPosition().x / m_Side);
+						int RowIndex = static_cast<int>(m_StartNode->GetPosition().y / m_Side) - 4;
+						int LocalIndex = RowIndex * m_ColumnsNumber + ColumnIndex;
+						m_Grid[LocalIndex]->SetDistance(1);
+						m_Grid[LocalIndex]->ChangeToIdleState();
+
+						m_EndNode->SetPosition(m_EndNode->GetPosition().x, m_EndNode->GetPosition().y);
+						ColumnIndex = static_cast<int>(m_EndNode->GetPosition().x / m_Side);
+						RowIndex = static_cast<int>(m_EndNode->GetPosition().y / m_Side) - 4;
+						LocalIndex = RowIndex * m_ColumnsNumber + ColumnIndex;
+						m_Grid[LocalIndex]->SetDistance(0);
+						m_Grid[LocalIndex]->ChangeToIdleState();
 					}
 
 					if (m_LeftClickGridFlag)

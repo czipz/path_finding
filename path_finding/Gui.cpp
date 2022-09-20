@@ -289,6 +289,7 @@ void gui::Grid::UpdateGridColor()
 		break;
 	case GRID_STATES::GRID_BORDER:
 		m_Grid.setFillColor(m_ActiveColor);
+		break;
 	default:
 		m_Grid.setFillColor(sf::Color::Red);
 		break;
@@ -385,7 +386,6 @@ void gui::GridStartNode::SetNodeFlag(const gui::GridEndNode& EndNode, std::vecto
 		if (!Grid[Index]->isBorder() && !EndNode.Contains(MousePos))
 		{
 			Grid[Index]->ChangeToIdleState();
-			Grid[Index]->UpdateGridColor();
 			Grid[Index]->SetDistance(1);
 			std::cout << "Drop " << Grid[Index]->GetDistance() << std::endl;
 		}
@@ -425,16 +425,19 @@ void gui::GridStartNode::Update(const sf::Vector2f& MousePos, const std::vector<
 			MousePos.y > EndNodePositionY + 21)))
 	{
 		m_StartingPoint.setPosition(Grid[Index]->GetPosition());
-		if (Grid[Index]->IsActive() && !m_ActiveToIdleFlag)
+		if (Index >= 0 && Index < Grid.size())
 		{
-			m_ActiveToIdleIndex = Index;
-			Grid[m_ActiveToIdleIndex]->ChangeToIdleState();
-			m_ActiveToIdleFlag = true;
-		}
-		if (m_ActiveToIdleIndex != Index && m_ActiveToIdleFlag)
-		{
-			Grid[m_ActiveToIdleIndex]->ChangeToActiveState();
-			m_ActiveToIdleFlag = false;
+			if (Grid[Index]->IsActive() && !m_ActiveToIdleFlag)
+			{
+				m_ActiveToIdleIndex = Index;
+				Grid[m_ActiveToIdleIndex]->ChangeToIdleState();
+				m_ActiveToIdleFlag = true;
+			}
+			if (m_ActiveToIdleIndex != Index && m_ActiveToIdleFlag)
+			{
+				Grid[m_ActiveToIdleIndex]->ChangeToActiveState();
+				m_ActiveToIdleFlag = false;
+			}
 		}
 	}
 }
@@ -497,7 +500,7 @@ void gui::GridEndNode::SetNodeFlag(const gui::GridStartNode& StartNode, std::vec
 		{
 			Grid[Index]->ChangeToIdleState();
 			Grid[Index]->UpdateGridColor();
-			Grid[Index]->SetDistance(1);
+			Grid[Index]->SetDistance(0);
 			std::cout << "Drop " << Grid[Index]->GetDistance() << std::endl;
 		}
 		else if (Grid[Index]->isBorder() || StartNode.Contains(MousePos))
@@ -506,7 +509,7 @@ void gui::GridEndNode::SetNodeFlag(const gui::GridStartNode& StartNode, std::vec
 			int ColumnIndex = static_cast<int>(m_DestinationPoint.getPosition().x / Side);
 			int RowIndex = static_cast<int>(m_DestinationPoint.getPosition().y / Side) - 4;
 			int LocalIndex = RowIndex * ColumnsNumber + ColumnIndex;
-			Grid[LocalIndex]->SetDistance(1);
+			Grid[LocalIndex]->SetDistance(0);
 			std::cout << "Drop next to border/node " << Grid[LocalIndex]->GetDistance() << std::endl;
 			std::cout << "LocalIndex: " << LocalIndex << std::endl;
 		}
@@ -521,6 +524,7 @@ bool gui::GridEndNode::GetNodeFlag() const
 void gui::GridEndNode::Update(const sf::Vector2f& MousePos, const std::vector<Grid*>& Grid, 
 	const gui::GridStartNode& StartNode, const int& Index)
 {
+
 	//Pick up node
 	int StartNodePositionX = StartNode.GetPosition().x;
 	int StartNodePositionY = StartNode.GetPosition().y;

@@ -14,9 +14,10 @@ void alg::A_Star::Run(const gui::GridStartNode& StartNode, const gui::GridEndNod
 		for (auto& e : Grid)
 		{
 			std::cout << e->GetDistance() << std::endl;
-			std::this_thread::sleep_for(std::chrono::milliseconds(3));
+			std::this_thread::sleep_for(std::chrono::microseconds(10));
 		}
 		VisualiseFlag = false;
+		m_Flag = true;
 	}
 }
 
@@ -37,11 +38,11 @@ void alg::Dijkstra::Run(const gui::GridStartNode& StartNode, const gui::GridEndN
 		for (auto& e : Grid)
 		{
 			std::cout << e->GetDistance() << std::endl;
-			std::this_thread::sleep_for(std::chrono::milliseconds(3));
+			std::this_thread::sleep_for(std::chrono::microseconds(10));
 		}
 		VisualiseFlag = false;
+		m_Flag = true;
 	}
-
 }
 
 //////////////////////////////////////////////////////
@@ -61,9 +62,10 @@ void alg::Wavefront::Run(const gui::GridStartNode& StartNode, const gui::GridEnd
 		for (auto& e : Grid)
 		{
 			std::cout << e->GetDistance() << std::endl;
-			std::this_thread::sleep_for(std::chrono::milliseconds(3));
+			std::this_thread::sleep_for(std::chrono::microseconds(10));
 		}
 		VisualiseFlag = false;
+		m_Flag = true;
 	}
 }
 
