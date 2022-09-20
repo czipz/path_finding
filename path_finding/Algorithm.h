@@ -41,6 +41,12 @@ namespace alg
 	class Wavefront : public Algorithm
 	{
 	private:
+		int m_FoundIndex;
+		int m_StartIndex;
+		std::set<int> m_DiscoveredNodes;
+		std::list<std::set<int>> m_DiscoveredNodeList;
+		std::list<int> m_Path;
+		bool m_NoPath = false;
 
 	public:
 		Wavefront();

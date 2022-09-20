@@ -197,8 +197,9 @@ void gui::DropDownList::Render(sf::RenderTarget* Target)
 /////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 
-gui::Grid::Grid(const float& x, const float& y, const float& side,
+gui::Grid::Grid(const float& x, const float& y, const float& side, const int& GridIndex,
 	sf::Color IdleColor, sf::Color ActiveColor, sf::Color OutlineColor)
+	: m_GridIndex(GridIndex)
 {
 
 	m_GridState = GRID_STATES::GRID_IDLE;
@@ -228,7 +229,7 @@ gui::Grid::~Grid()
 
 void gui::Grid::ChangeToIdleState()
 {
-	if (m_GridState == GRID_STATES::GRID_ACTIVE && m_GridState != GRID_STATES::GRID_BORDER)
+	if (m_GridState != GRID_STATES::GRID_BORDER)
 	{
 		m_GridState = GRID_STATES::GRID_IDLE;
 		UpdateGridColor();
@@ -277,6 +278,23 @@ int gui::Grid::GetDistance() const
 	return m_Distance;
 }
 
+int gui::Grid::GetGridIndex() const
+{
+	return m_GridIndex;
+}
+
+void gui::Grid::ColorSearch()
+{
+	m_GridState = GRID_STATES::GRID_SEARCH;
+	UpdateGridColor();
+}
+
+void gui::Grid::ColorPath()
+{
+	m_GridState = GRID_STATES::GRID_PATH;
+	UpdateGridColor();
+}
+
 void gui::Grid::UpdateGridColor()
 {
 	switch (m_GridState)
@@ -289,6 +307,12 @@ void gui::Grid::UpdateGridColor()
 		break;
 	case GRID_STATES::GRID_BORDER:
 		m_Grid.setFillColor(m_ActiveColor);
+		break;
+	case GRID_STATES::GRID_SEARCH:
+		m_Grid.setFillColor(sf::Color::Blue);
+		break;
+	case GRID_STATES::GRID_PATH:
+		m_Grid.setFillColor(sf::Color::Yellow);
 		break;
 	default:
 		m_Grid.setFillColor(sf::Color::Red);
@@ -338,7 +362,7 @@ void gui::Grid::Render(sf::RenderTarget* Target)
 ///////////////////////////////////////////////////////////////////
 
 gui::GridStartNode::GridStartNode(const float& x, const float& y, const float& size)
-	: m_NodeFlag(false), StartNodeIndex(976), m_ActiveToIdleFlag(false), m_ActiveToIdleIndex(-10000)
+	: m_NodeFlag(false), m_StartNodeIndex(976), m_ActiveToIdleFlag(false), m_ActiveToIdleIndex(-10000)
 {
 	m_StartTexture.loadFromFile("Images/Sprites/arrow.png");
 	m_StartingPoint.setPosition(sf::Vector2f(x, y));
@@ -353,12 +377,12 @@ gui::GridStartNode::~GridStartNode()
 
 int gui::GridStartNode::GetIndex() const
 {
-	return StartNodeIndex;
+	return m_StartNodeIndex;
 }
 
 void gui::GridStartNode::SetIndex(const int& Index)
 {
-	StartNodeIndex = Index;
+	m_StartNodeIndex = Index;
 }
 
 const sf::Vector2f& gui::GridStartNode::GetPosition() const
@@ -387,7 +411,9 @@ void gui::GridStartNode::SetNodeFlag(const gui::GridEndNode& EndNode, std::vecto
 		{
 			Grid[Index]->ChangeToIdleState();
 			Grid[Index]->SetDistance(1);
+			m_StartNodeIndex = Index;
 			std::cout << "Drop " << Grid[Index]->GetDistance() << std::endl;
+			
 		}
 		else if (Grid[Index]->isBorder() || EndNode.Contains(MousePos))
 		{
@@ -396,6 +422,7 @@ void gui::GridStartNode::SetNodeFlag(const gui::GridEndNode& EndNode, std::vecto
 			int RowIndex = static_cast<int>(m_StartingPoint.getPosition().y / Side) - 4;
 			int LocalIndex = RowIndex * ColumnsNumber + ColumnIndex;
 			Grid[LocalIndex]->SetDistance(1);
+			m_StartNodeIndex = LocalIndex;
 			std::cout << "Drop next to border/node " << Grid[LocalIndex]->GetDistance() << std::endl;
 			std::cout << "LocalIndex: " << LocalIndex << std::endl;
 		}
@@ -451,7 +478,7 @@ void gui::GridStartNode::Render(sf::RenderTarget* Target)
 ///////////////////////////////////////////////////////////////////
 
 gui::GridEndNode::GridEndNode(const float& x, const float& y, const float& size)
-	: m_NodeFlag(false), EndNodeIndex(1007), m_ActiveToIdleFlag(false), m_ActiveToIdleIndex(-10000)
+	: m_NodeFlag(false), m_EndNodeIndex(1007), m_ActiveToIdleFlag(false), m_ActiveToIdleIndex(-10000)
 {
 	m_EndTexture.loadFromFile("Images/Sprites/destination.png");
 	m_DestinationPoint.setPosition(sf::Vector2f(x, y));
@@ -466,12 +493,12 @@ gui::GridEndNode::~GridEndNode()
 
 int gui::GridEndNode::GetIndex() const
 {
-	return EndNodeIndex;
+	return m_EndNodeIndex;
 }
 
 void gui::GridEndNode::SetIndex(const int& Index)
 {
-	EndNodeIndex = Index;
+	m_EndNodeIndex = Index;
 }
 
 const sf::Vector2f& gui::GridEndNode::GetPosition() const
@@ -501,6 +528,8 @@ void gui::GridEndNode::SetNodeFlag(const gui::GridStartNode& StartNode, std::vec
 			Grid[Index]->ChangeToIdleState();
 			Grid[Index]->UpdateGridColor();
 			Grid[Index]->SetDistance(0);
+			m_EndNodeIndex = Index;
+			std::cout << "m_EndNodeIndex=" << m_EndNodeIndex << std::endl;
 			std::cout << "Drop " << Grid[Index]->GetDistance() << std::endl;
 		}
 		else if (Grid[Index]->isBorder() || StartNode.Contains(MousePos))
@@ -510,6 +539,7 @@ void gui::GridEndNode::SetNodeFlag(const gui::GridStartNode& StartNode, std::vec
 			int RowIndex = static_cast<int>(m_DestinationPoint.getPosition().y / Side) - 4;
 			int LocalIndex = RowIndex * ColumnsNumber + ColumnIndex;
 			Grid[LocalIndex]->SetDistance(0);
+			m_EndNodeIndex = LocalIndex;
 			std::cout << "Drop next to border/node " << Grid[LocalIndex]->GetDistance() << std::endl;
 			std::cout << "LocalIndex: " << LocalIndex << std::endl;
 		}

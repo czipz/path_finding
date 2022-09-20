@@ -4,6 +4,8 @@
 #include <vector>
 #include <stack>
 #include <map>
+#include <list>
+#include <set>
 #include <iterator>
 #include <algorithm>
 #include <chrono>
@@ -19,7 +21,8 @@ enum class BUTTON_STATES
 
 enum class GRID_STATES
 {
-	GRID_BORDER = -2, GRID_ACTIVE = -1, GRID_IDLE = 0
+	GRID_BORDER = -2, GRID_ACTIVE = -1, GRID_IDLE = 0, 
+	GRID_SEARCH, GRID_PATH
 };
 
 
@@ -86,6 +89,7 @@ namespace gui
 	private:
 		GRID_STATES m_GridState;
 		int m_Distance;
+		int m_GridIndex;
 
 		sf::RectangleShape m_Grid;
 		sf::Color m_IdleColor;
@@ -93,7 +97,7 @@ namespace gui
 		sf::Color m_OutlineColor;
 
 	public:
-		Grid(const float&, const float&, const float&, sf::Color, sf::Color, sf::Color);
+		Grid(const float&, const float&, const float&, const int&, sf::Color, sf::Color, sf::Color);
 		~Grid();
 
 		void ChangeToIdleState();
@@ -106,6 +110,11 @@ namespace gui
 
 		void SetDistance(int);
 		int GetDistance() const;
+
+		int GetGridIndex() const;
+
+		void ColorSearch();
+		void ColorPath();
 	
 		void UpdateGridColor();
 
@@ -122,7 +131,7 @@ namespace gui
 		sf::RectangleShape m_StartingPoint;
 		sf::Texture m_StartTexture;
 
-		int StartNodeIndex;
+		int m_StartNodeIndex;
 
 		bool m_NodeFlag;
 
@@ -156,7 +165,7 @@ namespace gui
 		sf::RectangleShape m_DestinationPoint;
 		sf::Texture m_EndTexture;
 
-		int EndNodeIndex;
+		int m_EndNodeIndex;
 
 		int m_ActiveToIdleIndex;
 		bool m_ActiveToIdleFlag;

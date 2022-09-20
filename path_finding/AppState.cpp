@@ -26,10 +26,10 @@ void AppState::InitGui()
 		for (unsigned x = 0; x < (m_Window->getSize().x / m_Side); ++x)
 		{
 			if (y == 4  || y == m_Window->getSize().y / m_Side - 1 || x == 0 || x == m_Window->getSize().x / m_Side - 1)
-				m_Grid.push_back(new gui::Grid(m_Side * x, m_Side * y, m_Side,
+				m_Grid.push_back(new gui::Grid(m_Side * x, m_Side * y, m_Side, (y - 4) * m_ColumnsNumber + x,
 					sf::Color(0, 0, 0, 0), sf::Color(0, 0, 0, 0), sf::Color(0, 0, 0, 0)));
 			else
-				m_Grid.push_back(new gui::Grid(m_Side * x, m_Side * y, m_Side,
+				m_Grid.push_back(new gui::Grid(m_Side * x, m_Side * y, m_Side, (y - 4) * m_ColumnsNumber + x,
 					sf::Color(169, 169, 169), sf::Color::Black, sf::Color::White));
 		}
 	}
@@ -52,6 +52,7 @@ int AppState::GetGridIndex()
 	m_ColumnIndex = static_cast<int>(m_MouseX / m_Side);
 	m_RowIndex = static_cast<int>(m_MouseY / m_Side) - 4;
 	m_Index = m_RowIndex * m_ColumnsNumber + m_ColumnIndex;
+	//system("cls");
 	//std::cout << "Index = " << m_Index << std::endl;
 	return m_Index;
 }
