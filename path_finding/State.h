@@ -20,8 +20,6 @@ protected:
 	bool m_Quit;
 	std::stack<State*>* m_States;
 	sf::RenderWindow* m_Window;
-	sf::Vector2i m_MousePosScreen;
-	sf::Vector2i m_MousePosWindow;
 	sf::Vector2f m_MousePosView;
 	std::map<std::string, gui::Button*> m_Buttons;
 	sf::Event m_SfEvent;
@@ -33,7 +31,6 @@ public:
 
 	const bool& GetQuit() const;
 
-	sf::Vector2f GetMousePosView() const;
 	void UpdateMousePositions();
 
 	virtual void UpdateSFMLEvents(const float&) = 0;

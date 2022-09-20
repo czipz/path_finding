@@ -22,11 +22,6 @@ const bool& State::GetQuit() const
 	return m_Quit;
 }
 
-sf::Vector2f State::GetMousePosView() const
-{
-	return m_MousePosView;
-}
-
 void State::UpdateMousePositions()
 {
 	m_MousePosView = m_Window->mapPixelToCoords(sf::Mouse::getPosition(*m_Window));

@@ -199,7 +199,6 @@ void gui::DropDownList::Render(sf::RenderTarget* Target)
 
 gui::Grid::Grid(const float& x, const float& y, const float& side,
 	sf::Color IdleColor, sf::Color ActiveColor, sf::Color OutlineColor)
-	: m_KeyTimeMax(4.f), m_KeyTime(0.f)
 {
 
 	m_GridState = GRID_STATES::GRID_IDLE;
@@ -212,7 +211,7 @@ gui::Grid::Grid(const float& x, const float& y, const float& side,
 
 	if (ActiveColor == sf::Color(0, 0, 0, 0))
 	{
-		m_GridState = GRID_STATES::GRID_ACTIVE;
+		m_GridState = GRID_STATES::GRID_BORDER;
 		m_Grid.setFillColor(ActiveColor);
 		m_Distance = -1;
 	}
@@ -229,10 +228,12 @@ gui::Grid::~Grid()
 
 void gui::Grid::ChangeToIdleState()
 {
-	if (m_GridState == GRID_STATES::GRID_ACTIVE && m_Grid.getFillColor() != sf::Color(0, 0, 0, 0))
+	if (m_GridState == GRID_STATES::GRID_ACTIVE && m_GridState != GRID_STATES::GRID_BORDER)
+	{
 		m_GridState = GRID_STATES::GRID_IDLE;
-	if (m_Grid.getFillColor() != sf::Color(0, 0, 0, 0))
+		UpdateGridColor();
 		m_Distance = 0;
+	}	
 }
 
 const sf::Vector2f& gui::Grid::GetPosition() const
@@ -248,6 +249,14 @@ bool gui::Grid::IsActive() const
 	return false;
 }
 
+bool gui::Grid::isBorder() const
+{
+	if (m_GridState == GRID_STATES::GRID_BORDER)
+		return true;
+
+	return false;
+}
+
 bool gui::Grid::Contains(const sf::Vector2f& Something) const
 {
 	return m_Grid.getGlobalBounds().contains(Something);
@@ -258,6 +267,24 @@ int gui::Grid::GetDistance() const
 	return m_Distance;
 }
 
+void gui::Grid::UpdateGridColor()
+{
+	switch (m_GridState)
+	{
+	case GRID_STATES::GRID_IDLE:
+		m_Grid.setFillColor(m_IdleColor);
+		break;
+	case GRID_STATES::GRID_ACTIVE:
+		m_Grid.setFillColor(m_ActiveColor);
+		break;
+	case GRID_STATES::GRID_BORDER:
+		m_Grid.setFillColor(m_ActiveColor);
+	default:
+		m_Grid.setFillColor(sf::Color::Red);
+		break;
+	}
+}
+
 void gui::Grid::SetDistance(int Distance) 
 {
 	m_Distance = Distance;
@@ -266,28 +293,28 @@ void gui::Grid::SetDistance(int Distance)
 void gui::Grid::UpdateLeft(const sf::Vector2f& MousePos,
 	 GridStartNode* StartNode, GridEndNode* EndNode)
 {
-	if (m_Grid.getFillColor() != sf::Color(0, 0, 0, 0) && m_GridState == GRID_STATES::GRID_IDLE &&
+	if (m_GridState != GRID_STATES::GRID_BORDER && m_GridState == GRID_STATES::GRID_IDLE &&
 		!(m_Grid.getGlobalBounds().contains(StartNode->GetPosition()) || 
 			m_Grid.getGlobalBounds().contains(EndNode->GetPosition())))
 	{
 		m_GridState = GRID_STATES::GRID_ACTIVE;
 		m_Distance = -1;
 		std::cout << "Left click " << m_Distance << std::endl;
-		m_Grid.setFillColor(m_ActiveColor);
+		UpdateGridColor();
 	}
 }
 
 void gui::Grid::UpdateRight(const sf::Vector2f& MousePos,
 	GridStartNode* StartNode, GridEndNode* EndNode)
 {
-	if (m_Grid.getFillColor() != sf::Color(0, 0, 0, 0) && m_GridState == GRID_STATES::GRID_ACTIVE &&
+	if (m_GridState != GRID_STATES::GRID_BORDER && m_GridState == GRID_STATES::GRID_ACTIVE &&
 		!(m_Grid.getGlobalBounds().contains(StartNode->GetPosition()) || 
 			m_Grid.getGlobalBounds().contains(EndNode->GetPosition())))
 	{
 		m_GridState = GRID_STATES::GRID_IDLE;
 		m_Distance = 0;
 		std::cout << "Right click " << m_Distance << std::endl;
-		m_Grid.setFillColor(m_IdleColor);
+		UpdateGridColor();
 	}
 }
 
@@ -300,7 +327,7 @@ void gui::Grid::Render(sf::RenderTarget* Target)
 ///////////////////////////////////////////////////////////////////
 
 gui::GridStartNode::GridStartNode(const float& x, const float& y, const float& size)
-	: m_KeyTimeMax(4.f), m_KeyTime(0.f), m_NodeFlag(false)
+	: m_NodeFlag(false), StartNodeIndex(976)
 {
 	m_StartTexture.loadFromFile("Images/Sprites/arrow.png");
 	m_StartingPoint.setPosition(sf::Vector2f(x, y));
@@ -313,6 +340,16 @@ gui::GridStartNode::~GridStartNode()
 
 }
 
+int gui::GridStartNode::GetIndex() const
+{
+	return StartNodeIndex;
+}
+
+void gui::GridStartNode::SetIndex(const int& Index)
+{
+	StartNodeIndex = Index;
+}
+
 const sf::Vector2f& gui::GridStartNode::GetPosition() const
 {
 	return m_StartingPoint.getPosition();
@@ -323,30 +360,60 @@ void gui::GridStartNode::SetPosition(const float& x, const float& y)
 	m_StartingPoint.setPosition(sf::Vector2f(x, y));
 }
 
-void gui::GridStartNode::Update(const sf::Vector2f& MousePos, 
-	const std::vector<Grid*>& Grid, const int& Index)
+bool gui::GridStartNode::Contains(const sf::Vector2f& Something) const
 {
-	// Pick up the node
-	if (m_StartingPoint.getGlobalBounds().contains(MousePos))
-	{
-		m_NodeFlag = true;
-		Grid[Index]->SetDistance(0);
-		std::cout << "Pickup " << Grid[Index]->GetDistance() << std::endl;
-	}
+	return m_StartingPoint.getGlobalBounds().contains(Something);
+}
 
-	// Drop the node
-	if (m_NodeFlag && !Grid[Index]->IsActive() && Grid[Index]->Contains(MousePos))
-	{
-		m_NodeFlag = false;
-		Grid[Index]->SetDistance(1);
-		std::cout << "Drop " << Grid[Index]->GetDistance() << std::endl;
-	}
-
+void gui::GridStartNode::SetNodeFlag(const gui::GridEndNode& EndNode, std::vector<Grid*>& Grid,
+	const sf::Vector2f& MousePos, const int& Index, const int& ColumnsNumber, const int& Side)
+{
 	if (m_NodeFlag)
 	{
-		if (!Grid[Index]->IsActive())
-			m_StartingPoint.setPosition(Grid[Index]->GetPosition());
+		m_NodeFlag = false;
+
+		if (!Grid[Index]->isBorder() && !EndNode.Contains(MousePos))
+		{
+			Grid[Index]->ChangeToIdleState();
+			Grid[Index]->UpdateGridColor();
+			Grid[Index]->SetDistance(1);
+			std::cout << "Drop " << Grid[Index]->GetDistance() << std::endl;
+		}
+		else if (Grid[Index]->isBorder() || EndNode.Contains(MousePos))
+		{
+			std::cout << "Border/Node " << Grid[Index]->GetDistance() << std::endl;
+			int ColumnIndex = static_cast<int>(m_StartingPoint.getPosition().x / Side);
+			int RowIndex = static_cast<int>(m_StartingPoint.getPosition().y / Side) - 4;
+			int LocalIndex = RowIndex * ColumnsNumber + ColumnIndex;
+			Grid[LocalIndex]->SetDistance(1);
+			std::cout << "Drop next to border/node " << Grid[LocalIndex]->GetDistance() << std::endl;
+			std::cout << "LocalIndex: " << LocalIndex << std::endl;
+		}
 	}
+}
+
+bool gui::GridStartNode::GetNodeFlag() const
+{
+	return m_NodeFlag;
+}
+
+void gui::GridStartNode::Update(const sf::Vector2f& MousePos, const std::vector<Grid*>& Grid,
+	const gui::GridEndNode& EndNode, const int& Index)
+{
+	 //Pick up the node
+	int EndNodePositionX = EndNode.GetPosition().x;
+	int EndNodePositionY = EndNode.GetPosition().y;
+	if (!m_NodeFlag && m_StartingPoint.getGlobalBounds().contains(MousePos))
+	{
+		Grid[Index]->SetDistance(0);
+		std::cout << "Pickup " << Grid[Index]->GetDistance() << std::endl;
+		m_NodeFlag = true;
+	}
+
+	if (m_NodeFlag && !Grid[Index]->isBorder() && ((MousePos.x < EndNodePositionX - 1 ||
+		MousePos.x > EndNodePositionX + 21) || (MousePos.y < EndNodePositionY - 1 ||
+			MousePos.y > EndNodePositionY + 21)))
+		m_StartingPoint.setPosition(Grid[Index]->GetPosition());
 }
 
 void gui::GridStartNode::Render(sf::RenderTarget* Target)
@@ -358,7 +425,7 @@ void gui::GridStartNode::Render(sf::RenderTarget* Target)
 ///////////////////////////////////////////////////////////////////
 
 gui::GridEndNode::GridEndNode(const float& x, const float& y, const float& size)
-	: m_KeyTimeMax(4.f), m_KeyTime(0.f), m_NodeFlag(false)
+	: m_NodeFlag(false), EndNodeIndex(1007)
 {
 	m_EndTexture.loadFromFile("Images/Sprites/destination.png");
 	m_DestinationPoint.setPosition(sf::Vector2f(x, y));
@@ -371,21 +438,14 @@ gui::GridEndNode::~GridEndNode()
 
 }
 
-bool gui::GridEndNode::GetKeyTime()
+int gui::GridEndNode::GetIndex() const
 {
-	if (m_KeyTime >= m_KeyTimeMax)
-	{
-		m_KeyTime = 0.f;
-		return true;
-	}
-	else
-		return false;
+	return EndNodeIndex;
 }
 
-void gui::GridEndNode::UpdateKeyTime(const float& ElapsedTime)
+void gui::GridEndNode::SetIndex(const int& Index)
 {
-	if (m_KeyTime < m_KeyTimeMax)
-		m_KeyTime += 10.f * ElapsedTime;
+	EndNodeIndex = Index;
 }
 
 const sf::Vector2f& gui::GridEndNode::GetPosition() const
@@ -398,36 +458,61 @@ void gui::GridEndNode::SetPosition(const float& x, const float& y)
 	m_DestinationPoint.setPosition(sf::Vector2f(x, y));
 }
 
-void gui::GridEndNode::UpdateNodePosition(const sf::Vector2f& MousePos, const std::vector<Grid*>& Grid)
+bool gui::GridEndNode::Contains(const sf::Vector2f& Something) const
 {
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && m_NodeFlag && GetKeyTime() &&
-		!std::any_of(Grid.begin(), Grid.end(), [&MousePos](auto& x)
-			{ return (x->IsActive() && x->Contains(MousePos)); }))
-		m_NodeFlag = false;
+	return m_DestinationPoint.getGlobalBounds().contains(Something);
+}
 
-	if (m_DestinationPoint.getGlobalBounds().contains(MousePos) &&
-		sf::Mouse::isButtonPressed(sf::Mouse::Left) && GetKeyTime())
-	{
-		m_NodeFlag = true;
-	}
-
+void gui::GridEndNode::SetNodeFlag(const gui::GridStartNode& StartNode, std::vector<Grid*>& Grid,
+	const sf ::Vector2f& MousePos, const int& Index, const int& ColumnsNumber, const int& Side)
+{
 	if (m_NodeFlag)
 	{
-		for (const auto& e : Grid)
+		m_NodeFlag = false;
+
+		if (!Grid[Index]->isBorder() && !StartNode.Contains(MousePos))
 		{
-			if (e->Contains(MousePos) && !e->IsActive())
-			{
-				m_DestinationPoint.setPosition(e->GetPosition());
-			}
+			Grid[Index]->ChangeToIdleState();
+			Grid[Index]->UpdateGridColor();
+			Grid[Index]->SetDistance(1);
+			std::cout << "Drop " << Grid[Index]->GetDistance() << std::endl;
+		}
+		else if (Grid[Index]->isBorder() || StartNode.Contains(MousePos))
+		{
+			std::cout << "Border/Node " << Grid[Index]->GetDistance() << std::endl;
+			int ColumnIndex = static_cast<int>(m_DestinationPoint.getPosition().x / Side);
+			int RowIndex = static_cast<int>(m_DestinationPoint.getPosition().y / Side) - 4;
+			int LocalIndex = RowIndex * ColumnsNumber + ColumnIndex;
+			Grid[LocalIndex]->SetDistance(1);
+			std::cout << "Drop next to border/node " << Grid[LocalIndex]->GetDistance() << std::endl;
+			std::cout << "LocalIndex: " << LocalIndex << std::endl;
 		}
 	}
 }
 
-void gui::GridEndNode::Update(const sf::Vector2f& MousePos, const std::vector<Grid*>& Grid, const float& ElapsedTime)
+bool gui::GridEndNode::GetNodeFlag() const
 {
-	this->UpdateKeyTime(ElapsedTime);
-	this->UpdateNodePosition(MousePos, Grid);
+	return m_NodeFlag;
+}
 
+void gui::GridEndNode::Update(const sf::Vector2f& MousePos, const std::vector<Grid*>& Grid, 
+	const gui::GridStartNode& StartNode, const int& Index)
+{
+	//Pick up node
+	int StartNodePositionX = StartNode.GetPosition().x;
+	int StartNodePositionY = StartNode.GetPosition().y;
+
+	if (!m_NodeFlag && m_DestinationPoint.getGlobalBounds().contains(MousePos))
+	{
+		Grid[Index]->SetDistance(0);
+		std::cout << "Pickup " << Grid[Index]->GetDistance() << std::endl;
+		m_NodeFlag = true;
+	}
+
+	if (m_NodeFlag && !Grid[Index]->isBorder() && ((MousePos.x < StartNodePositionX - 1 ||
+		MousePos.x > StartNodePositionX + 21) || (MousePos.y < StartNodePositionY - 1 ||
+			MousePos.y > StartNodePositionY + 21)))
+		m_DestinationPoint.setPosition(Grid[Index]->GetPosition());
 }
 
 void gui::GridEndNode::Render(sf::RenderTarget* Target)

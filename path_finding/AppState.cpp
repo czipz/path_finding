@@ -40,7 +40,6 @@ void AppState::InitGui()
 	m_Grid[976]->SetDistance(1);
 }
 
-
 int AppState::GetGridIndex()
 {
 	m_MouseX = m_MousePosView.x;
@@ -49,6 +48,7 @@ int AppState::GetGridIndex()
 	m_ColumnIndex = static_cast<int>(m_MouseX / m_Side);
 	m_RowIndex = static_cast<int>(m_MouseY / m_Side) - 4;
 	m_Index = m_RowIndex * m_ColumnsNumber + m_ColumnIndex;
+	//std::cout << "Index = " << m_Index << std::endl;
 	return m_Index;
 }
 
@@ -70,7 +70,7 @@ void AppState::InitBackground()
 AppState::AppState(sf::RenderWindow* Window, std::stack<State*>* States, 
 	const std::vector<std::string>& AlgList, const std::string& ActiveElementText)
 	: State(Window, States), m_Side(20), m_ActiveElementText(ActiveElementText), m_AlgList(AlgList),
-		m_VisualiseFlag(false)
+		m_VisualiseFlag(false), m_LeftClickNodeFlag(false), m_LeftClickGridFlag(false), m_RightClickGridFlag(false)
 {
 	std::cout << "Created App State\n";
 	this->InitGui();
@@ -108,6 +108,24 @@ void AppState::UpdateGui(const float& ElapsedTime)
 		it->second->Update(m_MousePosView);
 	}
 
+	if (GetGridIndex() >= 0 && GetGridIndex() < m_Grid.size())
+	{
+		if (m_LeftClickNodeFlag && !m_EndNode->GetNodeFlag())
+			m_StartNode->Update(m_MousePosView, m_Grid, *m_EndNode, GetGridIndex());
+
+		if (m_LeftClickNodeFlag && !m_StartNode->GetNodeFlag())
+			m_EndNode->Update(m_MousePosView, m_Grid, *m_StartNode, GetGridIndex());
+
+		if (m_LeftClickGridFlag)
+		{
+			m_Grid[GetGridIndex()]->UpdateLeft(m_MousePosView, m_StartNode, m_EndNode);
+		}
+
+		if (m_RightClickGridFlag)
+		{
+			m_Grid[GetGridIndex()]->UpdateRight(m_MousePosView, m_StartNode, m_EndNode);
+		}
+	}
 
 
 	// Exit Button
@@ -161,7 +179,6 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 {
 	while (m_Window->pollEvent(m_SfEvent))
 	{
-		int index = GetGridIndex();
 		switch (m_SfEvent.type)
 		{
 		case sf::Event::Closed:
@@ -171,13 +188,23 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 			// Update Grid
 			if (!m_VisualiseFlag)
 			{
-				if (index >= 0 && index < m_Grid.size())
+				if (m_SfEvent.mouseButton.button == sf::Mouse::Left)
 				{
-					if (m_SfEvent.mouseButton.button == sf::Mouse::Left)
-						m_Grid[index]->UpdateLeft(m_MousePosView, m_StartNode, m_EndNode);
+					if (!m_LeftClickNodeFlag && (m_StartNode->Contains(m_MousePosView) ||
+						m_EndNode->Contains(m_MousePosView)))
+						m_LeftClickNodeFlag = true;
 
-					else if (m_SfEvent.mouseButton.button == sf::Mouse::Right)
-						m_Grid[index]->UpdateRight(m_MousePosView, m_StartNode, m_EndNode);
+					if (!m_LeftClickGridFlag && !m_StartNode->Contains(m_MousePosView) &&
+						!m_EndNode->Contains(m_MousePosView))
+					{
+						m_LeftClickGridFlag = true;
+					}
+				}
+
+				else if (m_SfEvent.mouseButton.button == sf::Mouse::Right)
+				{
+					if (!m_RightClickGridFlag)
+						m_RightClickGridFlag = true;
 				}
 			}
 			break;
@@ -187,10 +214,16 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 			{
 				if (m_SfEvent.mouseButton.button == sf::Mouse::Left)
 				{
-					if (index >= 0 && index < m_Grid.size())
+					if (m_LeftClickNodeFlag)
 					{
-						m_StartNode->Update(m_MousePosView, m_Grid, index);
-						m_EndNode->Update(m_MousePosView, m_Grid, index);
+						m_LeftClickNodeFlag = false;
+						m_StartNode->SetNodeFlag(*m_EndNode, m_Grid, m_MousePosView, GetGridIndex(), m_ColumnsNumber, m_Side);
+						m_EndNode->SetNodeFlag(*m_StartNode, m_Grid, m_MousePosView, GetGridIndex(), m_ColumnsNumber, m_Side);
+					}
+
+					if (m_LeftClickGridFlag)
+					{
+						m_LeftClickGridFlag = false;
 					}
 
 					if (m_Buttons["VISUALISE"]->Contains(m_MousePosView))
@@ -214,10 +247,18 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 							e->ChangeToIdleState();
 						}
 						m_StartNode->SetPosition(m_Grid[976]->GetPosition().x, m_Grid[976]->GetPosition().y);
+						m_StartNode->SetIndex(976);
 						m_EndNode->SetPosition(m_Grid[1007]->GetPosition().x, m_Grid[1007]->GetPosition().y);
+						m_EndNode->SetIndex(1007);
 						m_Grid[976]->SetDistance(1);
+
 						std::cout << "Reset " << m_Grid[976]->GetDistance() << std::endl;
 					}
+				}
+				else if (m_SfEvent.mouseButton.button == sf::Mouse::Right)
+				{
+					if (m_RightClickGridFlag)
+						m_RightClickGridFlag = false;
 				}
 			}
 			break;

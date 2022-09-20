@@ -15,6 +15,9 @@ private:
 	std::map<std::string, alg::Algorithm*> m_Algorithms;
 
 	bool m_VisualiseFlag;
+	bool m_LeftClickNodeFlag;
+	bool m_LeftClickGridFlag;
+	bool m_RightClickGridFlag;
 
 	sf::RectangleShape m_Background;
 	sf::Texture m_BackgroundTexture;

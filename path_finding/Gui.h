@@ -19,7 +19,7 @@ enum class BUTTON_STATES
 
 enum class GRID_STATES
 {
-	GRID_ACTIVE = -1, GRID_IDLE
+	GRID_BORDER = -2, GRID_ACTIVE = -1, GRID_IDLE = 0
 };
 
 
@@ -92,9 +92,6 @@ namespace gui
 		sf::Color m_ActiveColor;
 		sf::Color m_OutlineColor;
 
-		float m_KeyTime;
-		float m_KeyTimeMax;
-
 	public:
 		Grid(const float&, const float&, const float&, sf::Color, sf::Color, sf::Color);
 		~Grid();
@@ -103,12 +100,14 @@ namespace gui
 
 		const sf::Vector2f& GetPosition() const;
 		bool IsActive() const;
+		bool isBorder() const;
 		bool Contains(const sf::Vector2f&) const;
 
 		void SetDistance(int);
 		int GetDistance() const;
 	
-		
+		void UpdateGridColor();
+
 		void UpdateLeft(const sf::Vector2f&,
 			GridStartNode*, GridEndNode*);
 		void UpdateRight(const sf::Vector2f&,
@@ -122,8 +121,7 @@ namespace gui
 		sf::RectangleShape m_StartingPoint;
 		sf::Texture m_StartTexture;
 
-		float m_KeyTime;
-		float m_KeyTimeMax;
+		int StartNodeIndex;
 
 		bool m_NodeFlag;
 
@@ -131,10 +129,20 @@ namespace gui
 		GridStartNode(const float&, const float&, const float&);
 		~GridStartNode();
 
+		int GetIndex() const;
+		void SetIndex(const int&);
+
 		const sf::Vector2f& GetPosition() const;
 		void SetPosition(const float&, const float&);
 
-		void Update(const sf::Vector2f&, const std::vector<Grid*>&, const int&);
+		bool Contains(const sf::Vector2f&) const;
+
+		void SetNodeFlag(const gui::GridEndNode&, std::vector<Grid*>&,
+			const sf::Vector2f& MousePos, const int&, const int&, const int&);
+		bool GetNodeFlag() const;
+
+		void Update(const sf::Vector2f&, const std::vector<Grid*>&,
+			const gui::GridEndNode&, const int&);
 		void Render(sf::RenderTarget*);
 	};
 
@@ -144,8 +152,7 @@ namespace gui
 		sf::RectangleShape m_DestinationPoint;
 		sf::Texture m_EndTexture;
 
-		float m_KeyTime;
-		float m_KeyTimeMax;
+		int EndNodeIndex;
 
 		bool m_NodeFlag;
 
@@ -153,15 +160,20 @@ namespace gui
 		GridEndNode(const float&, const float&, const float&);
 		~GridEndNode();
 
-		bool GetKeyTime();
-		void UpdateKeyTime(const float&);
+		int GetIndex() const;
+		void SetIndex(const int&);
 
 		const sf::Vector2f& GetPosition() const;
 		void SetPosition(const float&, const float&);
 
-		void UpdateNodePosition(const sf::Vector2f&, const std::vector<Grid*>&);
+		bool Contains(const sf::Vector2f&) const;
 
-		void Update(const sf::Vector2f&, const std::vector<Grid*>&, const float&);
+		void SetNodeFlag(const gui::GridStartNode&, std::vector<Grid*>&, 
+			const sf::Vector2f& MousePos, const int&, const int&, const int&);
+		bool GetNodeFlag() const;
+
+		void Update(const sf::Vector2f&, const std::vector<Grid*>&, 
+			const gui::GridStartNode&, const int&);
 		void Render(sf::RenderTarget*);
 	};
 }
