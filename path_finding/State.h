@@ -20,6 +20,7 @@ protected:
 	bool m_Quit;
 	std::stack<State*>* m_States;
 	sf::RenderWindow* m_Window;
+	//sf::Vector2i m_MousePos;
 	sf::Vector2f m_MousePosView;
 	std::map<std::string, gui::Button*> m_Buttons;
 	sf::Event m_SfEvent;

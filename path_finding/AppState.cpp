@@ -45,6 +45,10 @@ int AppState::GetGridIndex()
 	m_MouseX = m_MousePosView.x;
 	m_MouseY = m_MousePosView.y;
 
+	if (m_MouseX > 1280)
+		m_MouseX = 1280;
+	else if (m_MouseX < 0)
+		m_MouseX = 0;
 	m_ColumnIndex = static_cast<int>(m_MouseX / m_Side);
 	m_RowIndex = static_cast<int>(m_MouseY / m_Side) - 4;
 	m_Index = m_RowIndex * m_ColumnsNumber + m_ColumnIndex;

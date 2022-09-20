@@ -24,5 +24,9 @@ const bool& State::GetQuit() const
 
 void State::UpdateMousePositions()
 {
-	m_MousePosView = m_Window->mapPixelToCoords(sf::Mouse::getPosition(*m_Window));
+	
+	m_MousePosView = static_cast<sf::Vector2f>(sf::Mouse::getPosition(*m_Window));
+	//system("cls");
+	//std::cout << m_MousePosView.x << " " << m_MousePosView.y;
+	//m_MousePosView = m_Window->mapPixelToCoords(sf::Mouse::getPosition(*m_Window));
 }
