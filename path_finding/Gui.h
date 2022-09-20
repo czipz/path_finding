@@ -97,6 +97,7 @@ namespace gui
 		~Grid();
 
 		void ChangeToIdleState();
+		void ChangeToActiveState();
 
 		const sf::Vector2f& GetPosition() const;
 		bool IsActive() const;
@@ -124,6 +125,9 @@ namespace gui
 		int StartNodeIndex;
 
 		bool m_NodeFlag;
+
+		int m_ActiveToIdleIndex;
+		bool m_ActiveToIdleFlag;
 
 	public:
 		GridStartNode(const float&, const float&, const float&);
@@ -153,6 +157,9 @@ namespace gui
 		sf::Texture m_EndTexture;
 
 		int EndNodeIndex;
+
+		int m_ActiveToIdleIndex;
+		bool m_ActiveToIdleFlag;
 
 		bool m_NodeFlag;
 

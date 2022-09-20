@@ -236,6 +236,16 @@ void gui::Grid::ChangeToIdleState()
 	}	
 }
 
+void gui::Grid::ChangeToActiveState()
+{
+	if (m_GridState == GRID_STATES::GRID_IDLE && m_GridState != GRID_STATES::GRID_BORDER)
+	{
+		m_GridState = GRID_STATES::GRID_ACTIVE;
+		UpdateGridColor();
+		m_Distance = -1;
+	}
+}
+
 const sf::Vector2f& gui::Grid::GetPosition() const
 {
 	return m_Grid.getPosition();
@@ -327,7 +337,7 @@ void gui::Grid::Render(sf::RenderTarget* Target)
 ///////////////////////////////////////////////////////////////////
 
 gui::GridStartNode::GridStartNode(const float& x, const float& y, const float& size)
-	: m_NodeFlag(false), StartNodeIndex(976)
+	: m_NodeFlag(false), StartNodeIndex(976), m_ActiveToIdleFlag(false), m_ActiveToIdleIndex(-10000)
 {
 	m_StartTexture.loadFromFile("Images/Sprites/arrow.png");
 	m_StartingPoint.setPosition(sf::Vector2f(x, y));
@@ -413,7 +423,20 @@ void gui::GridStartNode::Update(const sf::Vector2f& MousePos, const std::vector<
 	if (m_NodeFlag && !Grid[Index]->isBorder() && ((MousePos.x < EndNodePositionX - 1 ||
 		MousePos.x > EndNodePositionX + 21) || (MousePos.y < EndNodePositionY - 1 ||
 			MousePos.y > EndNodePositionY + 21)))
+	{
 		m_StartingPoint.setPosition(Grid[Index]->GetPosition());
+		if (Grid[Index]->IsActive() && !m_ActiveToIdleFlag)
+		{
+			m_ActiveToIdleIndex = Index;
+			Grid[m_ActiveToIdleIndex]->ChangeToIdleState();
+			m_ActiveToIdleFlag = true;
+		}
+		if (m_ActiveToIdleIndex != Index && m_ActiveToIdleFlag)
+		{
+			Grid[m_ActiveToIdleIndex]->ChangeToActiveState();
+			m_ActiveToIdleFlag = false;
+		}
+	}
 }
 
 void gui::GridStartNode::Render(sf::RenderTarget* Target)
@@ -425,7 +448,7 @@ void gui::GridStartNode::Render(sf::RenderTarget* Target)
 ///////////////////////////////////////////////////////////////////
 
 gui::GridEndNode::GridEndNode(const float& x, const float& y, const float& size)
-	: m_NodeFlag(false), EndNodeIndex(1007)
+	: m_NodeFlag(false), EndNodeIndex(1007), m_ActiveToIdleFlag(false), m_ActiveToIdleIndex(-10000)
 {
 	m_EndTexture.loadFromFile("Images/Sprites/destination.png");
 	m_DestinationPoint.setPosition(sf::Vector2f(x, y));
@@ -512,7 +535,21 @@ void gui::GridEndNode::Update(const sf::Vector2f& MousePos, const std::vector<Gr
 	if (m_NodeFlag && !Grid[Index]->isBorder() && ((MousePos.x < StartNodePositionX - 1 ||
 		MousePos.x > StartNodePositionX + 21) || (MousePos.y < StartNodePositionY - 1 ||
 			MousePos.y > StartNodePositionY + 21)))
+	{
 		m_DestinationPoint.setPosition(Grid[Index]->GetPosition());
+		if (Grid[Index]->IsActive() && !m_ActiveToIdleFlag)
+		{
+			m_ActiveToIdleIndex = Index;
+			Grid[m_ActiveToIdleIndex]->ChangeToIdleState();
+			m_ActiveToIdleFlag = true;
+		}
+		if (m_ActiveToIdleIndex != Index && m_ActiveToIdleFlag)
+		{
+			Grid[m_ActiveToIdleIndex]->ChangeToActiveState();
+			m_ActiveToIdleFlag = false;
+		}
+	}
+		
 }
 
 void gui::GridEndNode::Render(sf::RenderTarget* Target)
