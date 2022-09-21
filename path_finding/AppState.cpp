@@ -49,8 +49,8 @@ int AppState::GetGridIndex()
 		m_MouseX = 1280;
 	else if (m_MouseX < 0)
 		m_MouseX = 0;
-	m_ColumnIndex = static_cast<int>(m_MouseX / m_Side);
-	m_RowIndex = static_cast<int>(m_MouseY / m_Side) - 4;
+	m_ColumnIndex = m_MouseX / m_Side;
+	m_RowIndex = m_MouseY / m_Side - 4;
 	m_Index = m_RowIndex * m_ColumnsNumber + m_ColumnIndex;
 	//system("cls");
 	//std::cout << "Index = " << m_Index << std::endl;
@@ -75,7 +75,8 @@ void AppState::InitBackground()
 AppState::AppState(sf::RenderWindow* Window, std::stack<State*>* States, 
 	const std::vector<std::string>& AlgList, const std::string& ActiveElementText)
 	: State(Window, States), m_Side(20), m_ActiveElementText(ActiveElementText), m_AlgList(AlgList),
-		m_VisualiseFlag(false), m_LeftClickNodeFlag(false), m_LeftClickGridFlag(false), m_RightClickGridFlag(false)
+		m_VisualiseFlag(false), m_LeftClickNodeFlag(false), m_LeftClickGridFlag(false), m_RightClickGridFlag(false),
+			m_RestartFlag(false)
 {
 	std::cout << "Created App State\n";
 	this->InitGui();
@@ -113,7 +114,7 @@ void AppState::UpdateGui(const float& ElapsedTime)
 		it->second->Update(m_MousePosView);
 	}
 
-	if (GetGridIndex() >= 0 && GetGridIndex() < m_Grid.size())
+	if (GetGridIndex() >= 0 && GetGridIndex() < m_Grid.size() && !m_RestartFlag)
 	{
 		if (m_LeftClickNodeFlag && !m_EndNode->GetNodeFlag())
 			m_StartNode->Update(m_MousePosView, m_Grid, *m_EndNode, GetGridIndex());
@@ -131,23 +132,6 @@ void AppState::UpdateGui(const float& ElapsedTime)
 			m_Grid[GetGridIndex()]->UpdateRight(m_MousePosView, m_StartNode, m_EndNode);
 		}
 	}
-
-
-	// Exit Button
-	//if (m_Buttons["VISUALISE"]->IsPressed())
-	//{
-	//	//if (m_ActiveElementText == "A*")
-	//	//	std::thread Thread(&alg::A_Star::Run, std::ref(m_A_Star),
-	//	//		std::ref(*m_StartNode), std::ref(*m_EndNode), std::ref(ElapsedTime), std::ref(m_Grid));
-	//	//else if (m_ActiveElementText == "Dijkstra's")
-	//	//	std::thread Thread(&alg::Dijkstra::Run, std::ref(m_Dijkstra),
-	//	//		std::ref(*m_StartNode), std::ref(*m_EndNode), std::ref(ElapsedTime), std::ref(m_Grid));
-	//	//else if (m_ActiveElementText == "Wavefront")
-	//	//	std::thread Thread(&alg::Wavefront::Run, std::ref(m_Wavefront),
-	//	//		std::ref(*m_StartNode), std::ref(*m_EndNode),  std::ref(ElapsedTime), std::ref(m_Grid));
-	//	std::thread Thread(&alg::Algorithm::Run, std::ref(*m_Algorithms[m_ActiveElementText]),
-	//		std::ref(*m_StartNode), std::ref(*m_EndNode), std::ref(ElapsedTime), std::ref(m_Grid));
-	//}
 }
 
 void AppState::RenderGui()
@@ -229,15 +213,15 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 					{
 						m_LeftClickNodeFlag = false;
 						m_StartNode->SetPosition(m_StartNode->GetPosition().x, m_StartNode->GetPosition().y);
-						int ColumnIndex = static_cast<int>(m_StartNode->GetPosition().x / m_Side);
-						int RowIndex = static_cast<int>(m_StartNode->GetPosition().y / m_Side) - 4;
+						int ColumnIndex = m_StartNode->GetPosition().x / m_Side;
+						int RowIndex = m_StartNode->GetPosition().y / m_Side - 4;
 						int LocalIndex = RowIndex * m_ColumnsNumber + ColumnIndex;
 						m_Grid[LocalIndex]->SetDistance(1);
 						m_Grid[LocalIndex]->ChangeToIdleState();
 
 						m_EndNode->SetPosition(m_EndNode->GetPosition().x, m_EndNode->GetPosition().y);
-						ColumnIndex = static_cast<int>(m_EndNode->GetPosition().x / m_Side);
-						RowIndex = static_cast<int>(m_EndNode->GetPosition().y / m_Side) - 4;
+						ColumnIndex = m_EndNode->GetPosition().x / m_Side;
+						RowIndex = m_EndNode->GetPosition().y / m_Side - 4;
 						LocalIndex = RowIndex * m_ColumnsNumber + ColumnIndex;
 						m_Grid[LocalIndex]->SetDistance(0);
 						m_Grid[LocalIndex]->ChangeToIdleState();
@@ -248,11 +232,11 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 						m_LeftClickGridFlag = false;
 					}
 
-					if (m_Buttons["VISUALISE"]->Contains(m_MousePosView))
+					if (m_Buttons["VISUALISE"]->Contains(m_MousePosView) && !m_RestartFlag)
 					{
-						m_VisualiseFlag = true;
 						std::thread Thread(&alg::Algorithm::Run, std::ref(*m_Algorithms[m_ActiveElementText]),
-							std::ref(*m_StartNode), std::ref(*m_EndNode), std::ref(ElapsedTime), std::ref(m_Grid), std::ref(m_VisualiseFlag));
+							std::ref(*m_StartNode), std::ref(*m_EndNode), std::ref(m_Grid), std::ref(m_VisualiseFlag), 
+							std::ref(m_RestartFlag));
 						Thread.detach();
 					}
 
@@ -275,6 +259,7 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 						m_Grid[976]->SetDistance(1);
 
 						std::cout << "Reset " << m_Grid[976]->GetDistance() << std::endl;
+						m_RestartFlag = false;
 					}
 				}
 				else if (m_SfEvent.mouseButton.button == sf::Mouse::Right)

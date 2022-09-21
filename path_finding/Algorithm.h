@@ -11,10 +11,11 @@ namespace alg
 	protected:
 		bool m_Flag = true;
 
+
 	public:
 		Algorithm() = default;
 		virtual void Run(const gui::GridStartNode&, const gui::GridEndNode&,
-			const float&, std::vector<gui::Grid*>&, bool&) = 0;
+			std::vector<gui::Grid*>&, bool&, bool&) = 0;
 
 	};
 
@@ -25,7 +26,8 @@ namespace alg
 	public:
 		A_Star();
 		void Run(const gui::GridStartNode&, const gui::GridEndNode&,
-			const float&, std::vector<gui::Grid*>&, bool&);
+			std::vector<gui::Grid*>&, bool&, bool&);
+
 	};
 
 	class Dijkstra : public Algorithm
@@ -35,7 +37,8 @@ namespace alg
 	public:
 		Dijkstra();
 		void Run(const gui::GridStartNode&, const gui::GridEndNode&,
-			const float&, std::vector<gui::Grid*>&, bool&);
+			std::vector<gui::Grid*>&, bool&, bool&);
+
 	};
 
 	class Wavefront : public Algorithm
@@ -51,7 +54,7 @@ namespace alg
 	public:
 		Wavefront();
 		void Run(const gui::GridStartNode&, const gui::GridEndNode&,
-			const float&, std::vector<gui::Grid*>&, bool&);
+			std::vector<gui::Grid*>&, bool&, bool&);
 	};
 }
 

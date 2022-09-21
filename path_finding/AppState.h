@@ -15,6 +15,8 @@ private:
 	std::map<std::string, alg::Algorithm*> m_Algorithms;
 
 	bool m_VisualiseFlag;
+	bool m_RestartFlag;
+
 	bool m_LeftClickNodeFlag;
 	bool m_LeftClickGridFlag;
 	bool m_RightClickGridFlag;
@@ -30,6 +32,7 @@ private:
 	int m_ColumnIndex;
 	int m_RowIndex;
 	int m_Index;
+
 
 	void InitGui();
 	void InitBackground();

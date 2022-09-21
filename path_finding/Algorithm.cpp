@@ -6,7 +6,7 @@ alg::A_Star::A_Star()
 }
 
 void alg::A_Star::Run(const gui::GridStartNode& StartNode, const gui::GridEndNode& EndNode,
-	const float& ElapsedTime, std::vector<gui::Grid*>& Grid, bool& VisualiseFlag)
+	std::vector<gui::Grid*>& Grid, bool& VisualiseFlag, bool& RestartFlag)
 {
 	if (m_Flag)
 	{
@@ -30,7 +30,7 @@ alg::Dijkstra::Dijkstra()
 }
 
 void alg::Dijkstra::Run(const gui::GridStartNode& StartNode, const gui::GridEndNode& EndNode,
-	const float& ElapsedTime, std::vector<gui::Grid*>& Grid, bool& VisualiseFlag)
+	std::vector<gui::Grid*>& Grid, bool& VisualiseFlag, bool& RestartFlag)
 {
 	if (m_Flag)
 	{
@@ -54,14 +54,17 @@ alg::Wavefront::Wavefront()
 }
 
 void alg::Wavefront::Run(const gui::GridStartNode& StartNode, const gui::GridEndNode& EndNode,
-	const float& ElapsedTime, std::vector<gui::Grid*>& Grid, bool& VisualiseFlag)
+	std::vector<gui::Grid*>& Grid, bool& VisualiseFlag, bool& RestartFlag)
 {
 	// - problem jest jak nie ma drogi
 	// - bugi po restarcie i poruszaniu Startem i Endem
 
 	if (m_Flag)
 	{
+		VisualiseFlag = true;
+		RestartFlag = true;
 		m_Flag = false;
+		m_NoPath = false;
 
 		m_StartIndex = StartNode.GetIndex();
 		m_FoundIndex = m_StartIndex;
@@ -73,65 +76,70 @@ void alg::Wavefront::Run(const gui::GridStartNode& StartNode, const gui::GridEnd
 		int temp = 0;
 		for (std::set<int> i : m_DiscoveredNodeList)
 		{
-			for (int j : i) // iteruje po kazdym indeksie z Setu
+			if (!i.empty())
 			{
-				if (Grid[j - 1]->GetDistance() == 0)
+				for (int j : i) // iteruje po kazdym indeksie z Setu
 				{
-					m_DiscoveredNodes.emplace(j - 1);
-					Grid[j - 1]->ColorSearch();
-					Grid[j - 1]->SetDistance(Grid[j]->GetDistance() + 1);
-					std::cout << Grid[j - 1]->GetDistance() << std::endl;
-
-					if (j - 1 == EndNode.GetIndex())
+					if (Grid[j - 1]->GetDistance() == 0)
 					{
-						temp = j - 1;
-						break;
-					}
-				}
-				if (Grid[j + 1]->GetDistance() == 0)
-				{
-					m_DiscoveredNodes.emplace(j + 1);
-					Grid[j + 1]->SetDistance(Grid[j]->GetDistance() + 1);
-					Grid[j + 1]->ColorSearch();
+						m_DiscoveredNodes.emplace(j - 1);
+						Grid[j - 1]->ColorSearch();
+						Grid[j - 1]->SetDistance(Grid[j]->GetDistance() + 1);
+						std::cout << Grid[j - 1]->GetDistance() << std::endl;
 
-					if (j + 1 == EndNode.GetIndex())
-					{
-						temp = j + 1;
-						break;
+						if (j - 1 == EndNode.GetIndex())
+						{
+							temp = j - 1;
+							break;
+						}
 					}
-				}
-				if (Grid[j + 64]->GetDistance() == 0)
-				{
-					m_DiscoveredNodes.emplace(j + 64);
-					Grid[j + 64]->SetDistance(Grid[j]->GetDistance() + 1);
-					Grid[j + 64]->ColorSearch();
+					if (Grid[j + 1]->GetDistance() == 0)
+					{
+						m_DiscoveredNodes.emplace(j + 1);
+						Grid[j + 1]->SetDistance(Grid[j]->GetDistance() + 1);
+						Grid[j + 1]->ColorSearch();
 
-					if (j + 64 == EndNode.GetIndex())
-					{
-						temp = j + 64;
-						break;
+						if (j + 1 == EndNode.GetIndex())
+						{
+							temp = j + 1;
+							break;
+						}
 					}
-				}
-				if (Grid[j - 64]->GetDistance() == 0)
-				{
-					m_DiscoveredNodes.emplace(j - 64);
-					Grid[j - 64]->ColorSearch();
-					Grid[j - 64]->SetDistance(Grid[j]->GetDistance() + 1);
+					if (Grid[j + 64]->GetDistance() == 0)
+					{
+						m_DiscoveredNodes.emplace(j + 64);
+						Grid[j + 64]->SetDistance(Grid[j]->GetDistance() + 1);
+						Grid[j + 64]->ColorSearch();
 
-					if (j - 64 == EndNode.GetIndex())
-					{
-						temp = j - 64;
-						break;
+						if (j + 64 == EndNode.GetIndex())
+						{
+							temp = j + 64;
+							break;
+						}
 					}
+					if (Grid[j - 64]->GetDistance() == 0)
+					{
+						m_DiscoveredNodes.emplace(j - 64);
+						Grid[j - 64]->ColorSearch();
+						Grid[j - 64]->SetDistance(Grid[j]->GetDistance() + 1);
+
+						if (j - 64 == EndNode.GetIndex())
+						{
+							temp = j - 64;
+							break;
+						}
+					}
+					std::this_thread::sleep_for(std::chrono::nanoseconds(1000));
 				}
-				std::this_thread::sleep_for(std::chrono::nanoseconds(1000));
+				if (temp == EndNode.GetIndex())
+					break;
+				m_DiscoveredNodeList.push_back(m_DiscoveredNodes);
+				m_DiscoveredNodes.clear();
+				//std::cout << "Halo\n";
+				//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
-			if (temp == EndNode.GetIndex())
+			else
 				break;
-			m_DiscoveredNodeList.push_back(m_DiscoveredNodes);
-			m_DiscoveredNodes.clear();
-			//std::cout << "Halo\n";
-			//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 		std::cout << "razdwa\n";
 		int FoundIndex = EndNode.GetIndex();
@@ -177,10 +185,15 @@ void alg::Wavefront::Run(const gui::GridStartNode& StartNode, const gui::GridEnd
 		}
 
 		std::cout << "Koniec\n";
-
-		VisualiseFlag = false;
+		m_DiscoveredNodeList.clear();
+		m_DiscoveredNodes.clear();
+		m_Path.clear();
+		
 		m_Flag = true;
+		VisualiseFlag = false;
 	}
+
 }
+
 
 
