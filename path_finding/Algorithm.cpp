@@ -14,6 +14,8 @@ void alg::A_Star::Run(const gui::GridStartNode& StartNode, const gui::GridEndNod
 		RestartFlag = true;
 		m_Flag = false;
 		
+
+		std::cout << "Start!\n";
 		m_StartIndex = StartNode.GetIndex();
 		m_DiscoveredNodesIndexes.push_back(m_StartIndex);
 
@@ -71,7 +73,11 @@ void alg::A_Star::Run(const gui::GridStartNode& StartNode, const gui::GridEndNod
 						break;
 				}
 				else
+				{
+					std::cout << "No path!\n";
 					m_NoPath = true;
+				}
+
 				//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
 		}
@@ -130,6 +136,8 @@ void alg::Dijkstra::Run(const gui::GridStartNode& StartNode, const gui::GridEndN
 		RestartFlag = true;
 		m_Flag = false;
 
+		std::cout << "Start!\n";
+
 		int Cost = 1;
 		m_StartIndex = StartNode.GetIndex();
 		m_DiscoveredNodesIndexes.push_back(m_StartIndex);
@@ -140,25 +148,45 @@ void alg::Dijkstra::Run(const gui::GridStartNode& StartNode, const gui::GridEndN
 		{
 			if (j >= 0 && j < Grid.size())
 			{
-				if (Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j - 1) < Grid[j - 1]->GetLocalDistance() && j - 1 != StartNode.GetIndex())
+				std::cout << "j - 1 = " << j - 1 << std::endl;
+				std::cout << "StartNode.GetIndex() = " << StartNode.GetIndex() << std::endl;
+				std::cout << "Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j - 1) = " << Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j - 1) << std::endl;
+				std::cout << "Grid[j - 1]->GetLocalDistance() = " << Grid[j - 1]->GetLocalDistance() << std::endl;
+				if (Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j - 1) < Grid[j - 1]->GetLocalDistance() && j - 1 != StartNode.GetIndex() &&
+					Grid[j - 1]->GetParentIndex() == -1)
 				{
 					Grid[j - 1]->SetParentIndex(j);
 					Grid[j - 1]->SetLocalDistance(Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j - 1));
 					m_DiscoveredNodesIndexes.push_back(j - 1);
 				}
-				if (Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j - 64) < Grid[j - 64]->GetLocalDistance() && j - 64 != StartNode.GetIndex())
+				std::cout << "j - 64 = " << j - 64 << std::endl;
+				std::cout << "StartNode.GetIndex() = " << StartNode.GetIndex() << std::endl;
+				std::cout << "Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j - 64) = " << Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j - 64) << std::endl;
+				std::cout << "Grid[j - 64]->GetLocalDistance() = " << Grid[j - 64]->GetLocalDistance() << std::endl;
+				if (Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j - 64) < Grid[j - 64]->GetLocalDistance() && j - 64 != StartNode.GetIndex() &&
+					Grid[j - 64]->GetParentIndex() == -1)
 				{
 					Grid[j - 64]->SetParentIndex(j);
 					Grid[j - 64]->SetLocalDistance(Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j - 64));
 					m_DiscoveredNodesIndexes.push_back(j - 64);
 				}
-				if (Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j + 1) < Grid[j + 1]->GetLocalDistance() && j + 1 != StartNode.GetIndex())
+				std::cout << "j + 1 = " << j + 1 << std::endl;
+				std::cout << "StartNode.GetIndex() = " << StartNode.GetIndex() << std::endl;
+				std::cout << "Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j + 1) = " << Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j + 1) << std::endl;
+				std::cout << "Grid[j + 1]->GetLocalDistance() = " << Grid[j + 1]->GetLocalDistance() << std::endl;
+				if (Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j + 1) < Grid[j + 1]->GetLocalDistance() && j + 1 != StartNode.GetIndex() &&
+					Grid[j + 1]->GetParentIndex() == -1)
 				{
 					Grid[j + 1]->SetParentIndex(j);
 					Grid[j + 1]->SetLocalDistance(Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j + 1));
 					m_DiscoveredNodesIndexes.push_back(j + 1);
 				}
-				if (Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j + 64) < Grid[j + 64]->GetLocalDistance() && j + 64 != StartNode.GetIndex())
+				std::cout << "j + 64 = " << j +64 << std::endl;
+				std::cout << "StartNode.GetIndex() = " << StartNode.GetIndex() << std::endl;
+				std::cout << "Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j + 64) = " << Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j + 64) << std::endl;
+				std::cout << "Grid[j + 64]->GetLocalDistance() = " << Grid[j + 64]->GetLocalDistance() << std::endl;
+				if (Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j + 64) < Grid[j + 64]->GetLocalDistance() && j + 64 != StartNode.GetIndex() &&
+					Grid[j + 64]->GetParentIndex() == -1)
 				{
 					Grid[j + 64]->SetParentIndex(j);
 					Grid[j + 64]->SetLocalDistance(Grid[j]->GetLocalDistance() + Heuristic(Grid, j, j + 64));
@@ -180,7 +208,11 @@ void alg::Dijkstra::Run(const gui::GridStartNode& StartNode, const gui::GridEndN
 							break;
 					}
 					else
+					{
+						std::cout << "No Path!\n";
 						m_NoPath = true;
+					}
+						
 				//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
 		}
@@ -217,7 +249,7 @@ void alg::Dijkstra::Run(const gui::GridStartNode& StartNode, const gui::GridEndN
 int alg::Dijkstra::Heuristic(const std::vector<gui::Grid*>& Grid, const int& Index1, const int& Index2)
 {
 	int heuristic = sqrt(pow((Grid[Index1]->GetPosition().x - Grid[Index2]->GetPosition().x), 2) +
-		pow((Grid[Index1]->GetPosition().y - Grid[Index2]->GetPosition().y), 2));
+		pow((Grid[Index1]->GetPosition().y - Grid[Index2]->GetPosition().y), 2)) / 20;
 	//std::cout << "heuristic = " << heuristic << std::endl;
 	return heuristic;
 }

@@ -384,7 +384,7 @@ void gui::Grid::UpdateRight(const sf::Vector2f& MousePos,
 	{
 		m_GridState = GRID_STATES::GRID_IDLE;
 		m_Distance = 0;
-		m_LocalDistance = INFINITY;
+		m_LocalDistance = 1000000;
 		std::cout << "Right click " << m_Distance << std::endl;
 		UpdateGridColor();
 	}
