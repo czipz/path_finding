@@ -30,13 +30,6 @@ App::~App()
     std::cout << "Ending App!\n";
 }
 
-void App::UpdateElapsedTime()
-{
-    m_ElapsedTime = m_ElapsedTimeClock.restart().asSeconds();
-    //std::cout << "ElapsedTime: " << m_ElapsedTime << std::endl;
-}
-
-
 void App::Update()
 {
     if (!m_States.empty())
@@ -69,8 +62,7 @@ void App::Run()
 {
     while (m_Window->isOpen())
     {
-        this->UpdateElapsedTime();
-        this->Update();
-        this->Render();
+        Update();
+        Render();
     }
 }
