@@ -12,6 +12,7 @@
 ## Visuals
 
 ![gif](visuals/path_finding.gif)
+![screenshot](visuals/menu.PNG)
 ![screenshot](visuals/path_finding.PNG)
 ![screenshot](visuals/path_finding2.PNG)
 
