@@ -34,8 +34,9 @@ private:
 	int m_Index;
 
 
-	void InitGui();
+	void InitGui() override;
 	void InitBackground();
+	int Heuristic(gui::GridStartNode* const, gui::GridEndNode* const) const;
 
 public:
 	AppState(sf::RenderWindow*, std::stack<State*>*, 
@@ -44,13 +45,13 @@ public:
 
 	//Functions
 
-	int  GetGridIndex() /*override*/;
-	void UpdateGui(const float&);
-	void RenderGui();
+	int  GetGridIndex();
+	void UpdateGui() override;
+	void RenderGui() override;
 
-	void Update(const float&);
+	void Update() override;
 
-	void Render();
-	void UpdateSFMLEvents(const float&) override;
+	void Render() override;
+	void UpdateSFMLEvents() override;
 };
 

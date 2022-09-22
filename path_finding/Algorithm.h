@@ -22,17 +22,33 @@ namespace alg
 	class A_Star : public Algorithm
 	{
 	private:
+		int m_FoundIndex;
+		int m_StartIndex;
+		std::list<int> m_DiscoveredNodesIndexes;
+		std::list<int> m_Path;
+
+		bool m_NoPath;
+
+		int Heuristic(const std::vector<gui::Grid*>&, const int&, const int&);
+
 
 	public:
 		A_Star();
 		void Run(const gui::GridStartNode&, const gui::GridEndNode&,
 			std::vector<gui::Grid*>&, bool&, bool&);
 
+
 	};
 
 	class Dijkstra : public Algorithm
 	{
 	private:
+		std::list<int> m_DiscoveredNodesIndexes;
+		std::list<int> m_Path;
+		int m_StartIndex;
+		bool m_NoPath = false;
+
+		int Heuristic(const std::vector<gui::Grid*>&, const int&, const int&);
 
 	public:
 		Dijkstra();

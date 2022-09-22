@@ -46,7 +46,7 @@ MenuState::~MenuState()
 	}
 }
 
-void MenuState::UpdateGui(const float& ElapsedTime)
+void MenuState::UpdateGui()
 {
 	for (auto it = m_Buttons.begin(); it != m_Buttons.end(); ++it)
 	{
@@ -72,11 +72,11 @@ void MenuState::RenderGui()
 	}
 }
 
-void MenuState::Update(const float& ElapsedTime)
+void MenuState::Update()
 {
 	UpdateMousePositions();
-	UpdateGui(ElapsedTime);
-	UpdateSFMLEvents(ElapsedTime);
+	UpdateGui();
+	UpdateSFMLEvents();
 }	
 
 void MenuState::Render()
@@ -86,7 +86,7 @@ void MenuState::Render()
 	this->RenderGui();
 }
 
-void MenuState::UpdateSFMLEvents(const float& ElapsedTime)
+void MenuState::UpdateSFMLEvents()
 {
 	while (m_Window->pollEvent(m_SfEvent))
 	{
@@ -110,7 +110,7 @@ void MenuState::UpdateSFMLEvents(const float& ElapsedTime)
 				{
 					m_Quit = true;
 				}
-				m_DropDownLists["ALGORITHMS"]->Update(m_MousePosView, ElapsedTime);
+				m_DropDownLists["ALGORITHMS"]->Update(m_MousePosView);
 			}
 			break;
 		}

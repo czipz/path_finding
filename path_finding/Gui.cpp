@@ -143,7 +143,7 @@ void gui::DropDownList::UpdateButtonState(const sf::Vector2f& MousePos)
 	}
 }
 
-void gui::DropDownList::Update(const sf::Vector2f& MousePos, const float& ElapsedTime)
+void gui::DropDownList::Update(const sf::Vector2f& MousePos)
 {
 
 	//m_ActiveElement->Update(MousePos);
@@ -199,7 +199,7 @@ void gui::DropDownList::Render(sf::RenderTarget* Target)
 
 gui::Grid::Grid(const float& x, const float& y, const float& side, const int& GridIndex,
 	sf::Color IdleColor, sf::Color ActiveColor, sf::Color OutlineColor)
-	: m_GridIndex(GridIndex)
+	: m_GridIndex(GridIndex), m_GlobalDistance(1000000), m_LocalDistance(1000000), m_ParentIndex(-1)
 {
 
 	m_GridState = GRID_STATES::GRID_IDLE;
@@ -215,6 +215,7 @@ gui::Grid::Grid(const float& x, const float& y, const float& side, const int& Gr
 		m_GridState = GRID_STATES::GRID_BORDER;
 		m_Grid.setFillColor(ActiveColor);
 		m_Distance = -1;
+		m_LocalDistance = -1;
 	}
 
 	m_IdleColor = IdleColor;
@@ -234,7 +235,10 @@ void gui::Grid::ChangeToIdleState()
 		m_GridState = GRID_STATES::GRID_IDLE;
 		UpdateGridColor();
 		m_Distance = 0;
-	}	
+		m_GlobalDistance = 1000000;
+		m_LocalDistance = 1000000;
+		m_ParentIndex = -1;
+	}
 }
 
 void gui::Grid::ChangeToActiveState()
@@ -244,6 +248,7 @@ void gui::Grid::ChangeToActiveState()
 		m_GridState = GRID_STATES::GRID_ACTIVE;
 		UpdateGridColor();
 		m_Distance = -1;
+		m_LocalDistance = -1;
 	}
 }
 
@@ -273,9 +278,44 @@ bool gui::Grid::Contains(const sf::Vector2f& Something) const
 	return m_Grid.getGlobalBounds().contains(Something);
 }
 
+void gui::Grid::SetDistance(const int& Distance)
+{
+	m_Distance = Distance;
+}
+
 int gui::Grid::GetDistance() const
 {
 	return m_Distance;
+}
+
+void gui::Grid::SetLocalDistance(const int& LocalDistance)
+{
+	m_LocalDistance = LocalDistance;
+}
+
+void gui::Grid::SetGlobalDistance(const int& GlobalDistance)
+{
+	m_GlobalDistance = GlobalDistance;
+}
+
+void gui::Grid::SetParentIndex(const int& ParentIndex)
+{
+	m_ParentIndex = ParentIndex;
+}
+
+int gui::Grid::GetLocalDistance() const
+{
+	return m_LocalDistance;
+}
+
+int gui::Grid::GetGlobalDistance() const
+{
+	return m_GlobalDistance;
+}
+
+int gui::Grid::GetParentIndex() const
+{
+	return m_ParentIndex;
 }
 
 int gui::Grid::GetGridIndex() const
@@ -320,11 +360,6 @@ void gui::Grid::UpdateGridColor()
 	}
 }
 
-void gui::Grid::SetDistance(int Distance) 
-{
-	m_Distance = Distance;
-}
-
 void gui::Grid::UpdateLeft(const sf::Vector2f& MousePos,
 	 GridStartNode* StartNode, GridEndNode* EndNode)
 {
@@ -334,6 +369,7 @@ void gui::Grid::UpdateLeft(const sf::Vector2f& MousePos,
 	{
 		m_GridState = GRID_STATES::GRID_ACTIVE;
 		m_Distance = -1;
+		m_LocalDistance = -1;
 		std::cout << "Left click " << m_Distance << std::endl;
 		UpdateGridColor();
 	}
@@ -348,6 +384,7 @@ void gui::Grid::UpdateRight(const sf::Vector2f& MousePos,
 	{
 		m_GridState = GRID_STATES::GRID_IDLE;
 		m_Distance = 0;
+		m_LocalDistance = INFINITY;
 		std::cout << "Right click " << m_Distance << std::endl;
 		UpdateGridColor();
 	}
@@ -406,11 +443,21 @@ void gui::GridStartNode::SetNodeFlag(const gui::GridEndNode& EndNode, std::vecto
 	if (m_NodeFlag)
 	{
 		m_NodeFlag = false;
+		int Heuristic = sqrt(pow((m_StartingPoint.getPosition().x - EndNode.GetPosition().x), 2) + 
+							pow((m_StartingPoint.getPosition().y - EndNode.GetPosition().y), 2));
+		std::cout << "Heuristic=" << Heuristic << std::endl;
 
 		if (!Grid[Index]->isBorder() && !EndNode.Contains(MousePos))
 		{
 			Grid[Index]->ChangeToIdleState();
+
+			// Wavefront
 			Grid[Index]->SetDistance(1);
+
+			// A*
+			Grid[Index]->SetGlobalDistance(Heuristic);
+			Grid[Index]->SetLocalDistance(0);
+
 			m_StartNodeIndex = Index;
 			std::cout << "Drop " << Grid[Index]->GetDistance() << std::endl;
 			
@@ -418,10 +465,17 @@ void gui::GridStartNode::SetNodeFlag(const gui::GridEndNode& EndNode, std::vecto
 		else if (Grid[Index]->isBorder() || EndNode.Contains(MousePos))
 		{
 			std::cout << "Border/Node " << Grid[Index]->GetDistance() << std::endl;
-			int ColumnIndex = static_cast<int>(m_StartingPoint.getPosition().x / Side);
-			int RowIndex = static_cast<int>(m_StartingPoint.getPosition().y / Side) - 4;
+			int ColumnIndex = m_StartingPoint.getPosition().x / Side;
+			int RowIndex = m_StartingPoint.getPosition().y / Side - 4;
 			int LocalIndex = RowIndex * ColumnsNumber + ColumnIndex;
+
+			// Wavefront
 			Grid[LocalIndex]->SetDistance(1);
+
+			// A*
+			Grid[LocalIndex]->SetGlobalDistance(Heuristic);
+			Grid[LocalIndex]->SetLocalDistance(0);
+
 			m_StartNodeIndex = LocalIndex;
 			std::cout << "Drop next to border/node " << Grid[LocalIndex]->GetDistance() << std::endl;
 			std::cout << "LocalIndex: " << LocalIndex << std::endl;
@@ -443,6 +497,8 @@ void gui::GridStartNode::Update(const sf::Vector2f& MousePos, const std::vector<
 	if (!m_NodeFlag && m_StartingPoint.getGlobalBounds().contains(MousePos))
 	{
 		Grid[Index]->SetDistance(0);
+		Grid[Index]->SetGlobalDistance(1000000);
+		Grid[Index]->SetLocalDistance(1000000);
 		std::cout << "Pickup " << Grid[Index]->GetDistance() << std::endl;
 		m_NodeFlag = true;
 	}
@@ -522,12 +578,21 @@ void gui::GridEndNode::SetNodeFlag(const gui::GridStartNode& StartNode, std::vec
 	if (m_NodeFlag)
 	{
 		m_NodeFlag = false;
+		int Heuristic = sqrt(pow((StartNode.GetPosition().x - m_DestinationPoint.getPosition().x), 2) +
+			pow((StartNode.GetPosition().y - m_DestinationPoint.getPosition().y), 2));
+		std::cout << "Heuristic=" << Heuristic << std::endl;
 
 		if (!Grid[Index]->isBorder() && !StartNode.Contains(MousePos))
 		{
 			Grid[Index]->ChangeToIdleState();
 			Grid[Index]->UpdateGridColor();
+
+			// Wavefront
 			Grid[Index]->SetDistance(0);
+
+			// A*
+			Grid[StartNode.GetIndex()]->SetGlobalDistance(Heuristic);
+
 			m_EndNodeIndex = Index;
 			std::cout << "m_EndNodeIndex=" << m_EndNodeIndex << std::endl;
 			std::cout << "Drop " << Grid[Index]->GetDistance() << std::endl;
@@ -538,7 +603,13 @@ void gui::GridEndNode::SetNodeFlag(const gui::GridStartNode& StartNode, std::vec
 			int ColumnIndex = static_cast<int>(m_DestinationPoint.getPosition().x / Side);
 			int RowIndex = static_cast<int>(m_DestinationPoint.getPosition().y / Side) - 4;
 			int LocalIndex = RowIndex * ColumnsNumber + ColumnIndex;
+
+			// Wavefront
 			Grid[LocalIndex]->SetDistance(0);
+
+			// A*
+			Grid[StartNode.GetIndex()]->SetGlobalDistance(Heuristic);
+
 			m_EndNodeIndex = LocalIndex;
 			std::cout << "Drop next to border/node " << Grid[LocalIndex]->GetDistance() << std::endl;
 			std::cout << "LocalIndex: " << LocalIndex << std::endl;

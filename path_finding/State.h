@@ -34,13 +34,13 @@ public:
 
 	void UpdateMousePositions();
 
-	virtual void UpdateSFMLEvents(const float&) = 0;
-	virtual void UpdateGui(const float&) = 0;
+	virtual void UpdateSFMLEvents() = 0;
+	virtual void UpdateGui() = 0;
 	virtual void RenderGui() = 0;
 
 	//virtual int GetGridIndex() const = 0;
 
-	virtual void Update(const float&) = 0;
+	virtual void Update() = 0;
 	virtual void Render() = 0;
 
 

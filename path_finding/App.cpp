@@ -41,7 +41,7 @@ void App::Update()
 {
     if (!m_States.empty())
     {
-        m_States.top()->Update(m_ElapsedTime);
+        m_States.top()->Update();
         if (m_States.top()->GetQuit())
         {
             delete m_States.top();

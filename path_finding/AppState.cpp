@@ -37,7 +37,11 @@ void AppState::InitGui()
 	//Init Grid Nodes
 	m_StartNode = new gui::GridStartNode(m_Grid[976]->GetPosition().x, m_Grid[976]->GetPosition().y, m_Side);
 	m_EndNode = new gui::GridEndNode(m_Grid[1007]->GetPosition().x, m_Grid[1007]->GetPosition().y, m_Side);
-	m_Grid[976]->SetDistance(1);
+	m_Grid[m_StartNode->GetIndex()]->SetDistance(1);
+	m_Grid[m_StartNode->GetIndex()]->SetGlobalDistance(Heuristic(m_StartNode, m_EndNode));
+	m_Grid[m_StartNode->GetIndex()]->SetLocalDistance(0);
+	std::cout << "Index = " << m_StartNode->GetIndex() << std::endl;
+	std::cout << "StartNode Global Distance = " << m_Grid[m_StartNode->GetIndex()]->GetGlobalDistance() << std::endl;
 }
 
 int AppState::GetGridIndex()
@@ -107,7 +111,7 @@ AppState::~AppState()
 	}
 }
 
-void AppState::UpdateGui(const float& ElapsedTime)
+void AppState::UpdateGui()
 {
 	for (auto it = m_Buttons.begin(); it != m_Buttons.end(); ++it)
 	{
@@ -150,11 +154,18 @@ void AppState::RenderGui()
 	m_EndNode->Render(m_Window);
 }
 
-void AppState::Update(const float& ElapsedTime)
+int AppState::Heuristic(gui::GridStartNode* const StartNode, gui::GridEndNode* const EndNode) const
+{
+	int heuristic = sqrt(pow((StartNode->GetPosition().x - EndNode->GetPosition().x), 2) +
+		pow((StartNode->GetPosition().x - EndNode->GetPosition().x), 2));
+	return heuristic;
+}
+
+void AppState::Update()
 {
 	UpdateMousePositions();
-	UpdateSFMLEvents(ElapsedTime);
-	UpdateGui(ElapsedTime);
+	UpdateSFMLEvents();
+	UpdateGui();
 }
 
 void AppState::Render()
@@ -164,7 +175,7 @@ void AppState::Render()
 	this->RenderGui();
 }
 
-void AppState::UpdateSFMLEvents(const float& ElapsedTime)
+void AppState::UpdateSFMLEvents()
 {
 	while (m_Window->pollEvent(m_SfEvent))
 	{
@@ -217,6 +228,7 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 						int RowIndex = m_StartNode->GetPosition().y / m_Side - 4;
 						int LocalIndex = RowIndex * m_ColumnsNumber + ColumnIndex;
 						m_Grid[LocalIndex]->SetDistance(1);
+						m_StartNode->SetIndex(LocalIndex);
 						m_Grid[LocalIndex]->ChangeToIdleState();
 
 						m_EndNode->SetPosition(m_EndNode->GetPosition().x, m_EndNode->GetPosition().y);
@@ -224,7 +236,11 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 						RowIndex = m_EndNode->GetPosition().y / m_Side - 4;
 						LocalIndex = RowIndex * m_ColumnsNumber + ColumnIndex;
 						m_Grid[LocalIndex]->SetDistance(0);
+						m_EndNode->SetIndex(LocalIndex);
 						m_Grid[LocalIndex]->ChangeToIdleState();
+
+						m_Grid[m_StartNode->GetIndex()]->SetGlobalDistance(Heuristic(m_StartNode, m_EndNode));
+						m_Grid[m_StartNode->GetIndex()]->SetLocalDistance(0);
 					}
 
 					if (m_LeftClickGridFlag)
@@ -256,9 +272,11 @@ void AppState::UpdateSFMLEvents(const float& ElapsedTime)
 						m_StartNode->SetIndex(976);
 						m_EndNode->SetPosition(m_Grid[1007]->GetPosition().x, m_Grid[1007]->GetPosition().y);
 						m_EndNode->SetIndex(1007);
-						m_Grid[976]->SetDistance(1);
+						m_Grid[m_StartNode->GetIndex()]->SetDistance(1);
+						m_Grid[m_StartNode->GetIndex()]->SetGlobalDistance(Heuristic(m_StartNode, m_EndNode));
+						m_Grid[m_StartNode->GetIndex()]->SetLocalDistance(0);
 
-						std::cout << "Reset " << m_Grid[976]->GetDistance() << std::endl;
+						std::cout << "Reset " << m_Grid[m_StartNode->GetIndex()]->GetDistance() << std::endl;
 						m_RestartFlag = false;
 					}
 				}

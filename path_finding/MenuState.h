@@ -13,19 +13,19 @@ private:
 
 	std::map<std::string, gui::DropDownList*> m_DropDownLists;
 
-	void InitGui();
+	void InitGui() override;
 	void InitBackground();
 
 public:
 	MenuState(sf::RenderWindow*, std::stack<State*>*);
 	virtual ~MenuState();
 
-	void UpdateGui(const float&);
-	void RenderGui();
+	void UpdateGui() override;
+	void RenderGui() override;
 
-	void Update(const float&);
+	void Update() override;
 
-	void Render();
-	void UpdateSFMLEvents(const float& ElapsedTime) override;
+	void Render() override;
+	void UpdateSFMLEvents() override;
 };
 

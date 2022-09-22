@@ -1,12 +1,11 @@
 #pragma once
 
 #include <iostream>
+#include <cmath>
 #include <vector>
 #include <stack>
-#include <map>
 #include <list>
 #include <set>
-#include <iterator>
 #include <algorithm>
 #include <chrono>
 
@@ -24,7 +23,6 @@ enum class GRID_STATES
 	GRID_BORDER = -2, GRID_ACTIVE = -1, GRID_IDLE = 0, 
 	GRID_SEARCH, GRID_PATH
 };
-
 
 namespace gui
 {
@@ -80,7 +78,7 @@ namespace gui
 		std::string GetActiveElementText() const;
 		void UpdateButtonState(const sf::Vector2f&);
 
-		void Update(const sf::Vector2f&, const float&);
+		void Update(const sf::Vector2f&);
 		void Render(sf::RenderTarget*);
 	};
 
@@ -88,8 +86,19 @@ namespace gui
 	{
 	private:
 		GRID_STATES m_GridState;
-		int m_Distance;
 		int m_GridIndex;
+
+		// Wavefront
+		int m_Distance;
+
+		// A*
+		int m_LocalDistance;
+		int m_GlobalDistance;
+		int m_ParentIndex;
+
+		// Dijkstra's
+
+
 
 		sf::RectangleShape m_Grid;
 		sf::Color m_IdleColor;
@@ -108,8 +117,19 @@ namespace gui
 		bool isBorder() const;
 		bool Contains(const sf::Vector2f&) const;
 
-		void SetDistance(int);
+		// Wavefront
+		void SetDistance(const int&);
 		int GetDistance() const;
+
+
+		// A*
+		void SetLocalDistance(const int&);
+		void SetGlobalDistance(const int&);
+		void SetParentIndex(const int&);
+		int GetLocalDistance() const;
+		int GetGlobalDistance() const;
+		int GetParentIndex() const;
+		
 
 		int GetGridIndex() const;
 
