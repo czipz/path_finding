@@ -15,8 +15,8 @@ void App::InitStates()
 App::App()
 {
     std::cout << "Starting App!\n";
-    this->InitWindow();
-    this->InitStates();
+    InitWindow();
+    InitStates();
 }
 
 App::~App()

@@ -1,11 +1,10 @@
 #include "State.h"
 
 State::State(sf::RenderWindow* Window, std::stack<State*>* States)
+	: m_States(States)
+	, m_Window(Window)
+	, m_Quit(false)
 {
-	m_States = States;
-	std::cout << "Created State\n";
-	m_Window = Window;
-	m_Quit = false;
 }
 
 State::~State()
@@ -24,9 +23,38 @@ const bool& State::GetQuit() const
 
 void State::UpdateMousePositions()
 {
-	
 	m_MousePosView = static_cast<sf::Vector2f>(sf::Mouse::getPosition(*m_Window));
 	//system("cls");
 	//std::cout << m_MousePosView.x << " " << m_MousePosView.y;
 	//m_MousePosView = m_Window->mapPixelToCoords(sf::Mouse::getPosition(*m_Window));
+}
+
+void State::RenderBackground()
+{
+	m_Window->draw(m_Background);
+}
+
+void State::RenderText()
+{
+	m_Window->draw(m_Text);
+}
+
+void State::Init()
+{
+	InitGui();
+	InitBackground();
+}
+
+void State::Update()
+{
+	UpdateMousePositions();
+	UpdateSFMLEvents();
+	UpdateGui();
+}
+
+void State::Render()
+{
+	RenderBackground();
+	RenderText();
+	RenderGui();
 }

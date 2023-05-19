@@ -1,6 +1,12 @@
 #include "AppState.h"
 
 
+void AppState::Init()
+{
+	State::Init();
+	InitAlgorithms();
+}
+
 void AppState::InitGui()
 {
 	//Init Buttons
@@ -17,20 +23,21 @@ void AppState::InitGui()
 		sf::Color(100, 100, 100, 100), sf::Color(150, 150, 150, 255), sf::Color(20, 20, 20, 200));
 
 	// Init Grid
-
-	//Rows Number = m_Window->getSize().y / m_Side - 4;
 	m_ColumnsNumber = m_Window->getSize().x / m_Side;
-
 	for (unsigned y = 4; y < (m_Window->getSize().y / m_Side); ++y)
 	{
 		for (unsigned x = 0; x < (m_Window->getSize().x / m_Side); ++x)
 		{
 			if (y == 4  || y == m_Window->getSize().y / m_Side - 1 || x == 0 || x == m_Window->getSize().x / m_Side - 1)
+			{
 				m_Grid.push_back(new gui::Grid(m_Side * x, m_Side * y, m_Side, (y - 4) * m_ColumnsNumber + x,
 					sf::Color(0, 0, 0, 0), sf::Color(0, 0, 0, 0), sf::Color(0, 0, 0, 0)));
+			}
 			else
+			{
 				m_Grid.push_back(new gui::Grid(m_Side * x, m_Side * y, m_Side, (y - 4) * m_ColumnsNumber + x,
 					sf::Color(169, 169, 169), sf::Color::Black, sf::Color::White));
+			}
 		}
 	}
 
@@ -53,6 +60,7 @@ int AppState::GetGridIndex()
 		m_MouseX = 1280;
 	else if (m_MouseX < 0)
 		m_MouseX = 0;
+
 	m_ColumnIndex = m_MouseX / m_Side;
 	m_RowIndex = m_MouseY / m_Side - 4;
 	m_Index = m_RowIndex * m_ColumnsNumber + m_ColumnIndex;
@@ -76,21 +84,26 @@ void AppState::InitBackground()
 	
 }
 
-AppState::AppState(sf::RenderWindow* Window, std::stack<State*>* States, 
-	const std::vector<std::string>& AlgList, const std::string& ActiveElementText)
-	: State(Window, States), m_Side(20), m_ActiveElementText(ActiveElementText), m_AlgList(AlgList),
-		m_VisualiseFlag(false), m_LeftClickNodeFlag(false), m_LeftClickGridFlag(false), m_RightClickGridFlag(false),
-			m_RestartFlag(false)
+void AppState::InitAlgorithms()
 {
-	std::cout << "Created App State\n";
-	this->InitGui();
-	this->InitBackground();
-
-
 	m_Algorithms.emplace("A*", new alg::A_Star());
 	m_Algorithms.emplace("Dijkstra's", new alg::Dijkstra());
-	m_Algorithms.emplace("Wavefront", new alg:: Wavefront());
+	m_Algorithms.emplace("Wavefront", new alg::Wavefront());
+}
 
+AppState::AppState(sf::RenderWindow* Window, std::stack<State*>* States, 
+	const std::vector<std::string>& AlgList, const std::string& ActiveElementText)
+	: State(Window, States)
+	, m_Side(20)
+	, m_ActiveElementText(ActiveElementText)
+	, m_AlgList(AlgList)
+	, m_VisualiseFlag(false)
+	, m_LeftClickNodeFlag(false)
+	, m_LeftClickGridFlag(false)
+	, m_RightClickGridFlag(false)
+	, m_RestartFlag(false)
+{
+	Init();
 }
 
 AppState::~AppState()
@@ -158,21 +171,8 @@ int AppState::Heuristic(gui::GridStartNode* const StartNode, gui::GridEndNode* c
 {
 	int heuristic = sqrt(pow((StartNode->GetPosition().x - EndNode->GetPosition().x), 2) +
 		pow((StartNode->GetPosition().x - EndNode->GetPosition().x), 2));
+
 	return heuristic;
-}
-
-void AppState::Update()
-{
-	UpdateMousePositions();
-	UpdateSFMLEvents();
-	UpdateGui();
-}
-
-void AppState::Render()
-{
-	m_Window->draw(m_Background);
-	m_Window->draw(m_Text);
-	this->RenderGui();
 }
 
 void AppState::UpdateSFMLEvents()

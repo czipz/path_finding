@@ -7,10 +7,6 @@ class App
 private:
 	// Variables
 	sf::RenderWindow* m_Window;
-	
-
-	sf::Clock m_ElapsedTimeClock;
-	float m_ElapsedTime;
 
 	std::stack<State*> m_States;
 
@@ -22,7 +18,6 @@ public:
 	App();
 	virtual ~App();
 
-	void UpdateElapsedTime();
 	void Update();
 
 	void Render();

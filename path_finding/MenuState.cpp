@@ -32,9 +32,7 @@ void MenuState::InitBackground()
 MenuState::MenuState(sf::RenderWindow* Window, std::stack<State*>* States)
 	: State(Window, States)
 {
-	this->InitBackground();
-	this->InitGui();
-	std::cout << "Created Menu State\n";
+	Init();
 }
 
 MenuState::~MenuState()
@@ -72,20 +70,6 @@ void MenuState::RenderGui()
 	}
 }
 
-void MenuState::Update()
-{
-	UpdateMousePositions();
-	UpdateGui();
-	UpdateSFMLEvents();
-}	
-
-void MenuState::Render()
-{
-	m_Window->draw(m_Background);
-	m_Window->draw(m_Text);
-	this->RenderGui();
-}
-
 void MenuState::UpdateSFMLEvents()
 {
 	while (m_Window->pollEvent(m_SfEvent))
@@ -114,6 +98,5 @@ void MenuState::UpdateSFMLEvents()
 			}
 			break;
 		}
-
 	}
 }

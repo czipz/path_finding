@@ -21,11 +21,6 @@ private:
 	bool m_LeftClickGridFlag;
 	bool m_RightClickGridFlag;
 
-	sf::RectangleShape m_Background;
-	sf::Texture m_BackgroundTexture;
-	sf::Text m_Text;
-	sf::Font m_Font;
-
 	int m_ColumnsNumber;
 	float m_MouseX;
 	float m_MouseY;
@@ -33,25 +28,25 @@ private:
 	int m_RowIndex;
 	int m_Index;
 
-
+	void Init() override;
 	void InitGui() override;
-	void InitBackground();
+	void InitBackground() override;
+	void InitAlgorithms();
+
 	int Heuristic(gui::GridStartNode* const, gui::GridEndNode* const) const;
 
 public:
 	AppState(sf::RenderWindow*, std::stack<State*>*, 
 		const std::vector<std::string>&, const std::string&);
+
 	virtual ~AppState();
 
 	//Functions
-
 	int  GetGridIndex();
+
 	void UpdateGui() override;
-	void RenderGui() override;
-
-	void Update() override;
-
-	void Render() override;
 	void UpdateSFMLEvents() override;
+
+	void RenderGui() override;
 };
 
