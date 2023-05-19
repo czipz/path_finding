@@ -19,9 +19,7 @@ public:
 	virtual ~App();
 
 	void Update();
-
 	void Render();
-
 	void Run();
 };
 

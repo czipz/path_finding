@@ -53,20 +53,23 @@ void AppState::InitGui()
 
 int AppState::GetGridIndex()
 {
-	m_MouseX = m_MousePosView.x;
-	m_MouseY = m_MousePosView.y;
+	int MouseX = static_cast<int>(m_MousePosView.x);
+	int MouseY = static_cast<int>(m_MousePosView.y);
 
-	if (m_MouseX > 1280)
-		m_MouseX = 1280;
-	else if (m_MouseX < 0)
-		m_MouseX = 0;
+	if (MouseX > m_Window->getSize().x)
+	{
+		MouseX = m_Window->getSize().x;
+	}
+	else if (MouseX < 0)
+	{
+		MouseX = 0;
+	}
 
-	m_ColumnIndex = m_MouseX / m_Side;
-	m_RowIndex = m_MouseY / m_Side - 4;
-	m_Index = m_RowIndex * m_ColumnsNumber + m_ColumnIndex;
-	//system("cls");
-	//std::cout << "Index = " << m_Index << std::endl;
-	return m_Index;
+	int ColumnIndex = MouseX / m_Side;
+	int RowIndex = MouseY / m_Side - 4;
+	int Index = RowIndex * m_ColumnsNumber + ColumnIndex;
+
+	return Index;
 }
 
 void AppState::InitBackground()
@@ -134,10 +137,14 @@ void AppState::UpdateGui()
 	if (GetGridIndex() >= 0 && GetGridIndex() < m_Grid.size() && !m_RestartFlag)
 	{
 		if (m_LeftClickNodeFlag && !m_EndNode->GetNodeFlag())
+		{
 			m_StartNode->Update(m_MousePosView, m_Grid, *m_EndNode, GetGridIndex());
+		}
 
 		if (m_LeftClickNodeFlag && !m_StartNode->GetNodeFlag())
+		{
 			m_EndNode->Update(m_MousePosView, m_Grid, *m_StartNode, GetGridIndex());
+		}
 
 		if (m_LeftClickGridFlag)
 		{

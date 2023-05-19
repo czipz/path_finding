@@ -4,6 +4,28 @@
 
 class AppState : public State
 {
+public:
+	AppState(sf::RenderWindow*, std::stack<State*>*, 
+		const std::vector<std::string>&, const std::string&);
+
+	virtual ~AppState();
+
+private:
+	//Functions
+	int  GetGridIndex();
+
+	void UpdateGui() override;
+	void UpdateSFMLEvents() override;
+
+	void RenderGui() override;
+
+	void Init() override;
+	void InitGui() override;
+	void InitBackground() override;
+	void InitAlgorithms();
+
+	int Heuristic(gui::GridStartNode* const, gui::GridEndNode* const) const;
+
 private:
 	std::vector<gui::Grid*> m_Grid;
 	gui::GridStartNode* m_StartNode;
@@ -22,31 +44,5 @@ private:
 	bool m_RightClickGridFlag;
 
 	int m_ColumnsNumber;
-	float m_MouseX;
-	float m_MouseY;
-	int m_ColumnIndex;
-	int m_RowIndex;
-	int m_Index;
-
-	void Init() override;
-	void InitGui() override;
-	void InitBackground() override;
-	void InitAlgorithms();
-
-	int Heuristic(gui::GridStartNode* const, gui::GridEndNode* const) const;
-
-public:
-	AppState(sf::RenderWindow*, std::stack<State*>*, 
-		const std::vector<std::string>&, const std::string&);
-
-	virtual ~AppState();
-
-	//Functions
-	int  GetGridIndex();
-
-	void UpdateGui() override;
-	void UpdateSFMLEvents() override;
-
-	void RenderGui() override;
 };
 
