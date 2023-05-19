@@ -1,0 +1,9 @@
+Instruction for release version
+
+1. open solution
+2. build release version
+3. go to dlls folder and copy: openal32.dll, sfml-graphics-2.dll, sfml-system-2.dll,
+sfml-window-2.dll. Go to project folder and open x64/Release and paste those dynamic libraries there.
+4. You can run the project.
+
+for debug version do the same, but copy dlls with -d.
